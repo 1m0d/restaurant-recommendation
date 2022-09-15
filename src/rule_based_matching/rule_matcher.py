@@ -41,7 +41,7 @@ class RuleMatcher:
 
         for word in words:
             if label := self.rules.get(word):
-                logging.info(f"{label=} for {word=}")
+                logging.debug(f"{label=} for {word=}")
                 return label
 
         return score_input_majority_class(input_text)
