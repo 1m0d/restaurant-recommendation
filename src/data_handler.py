@@ -1,4 +1,5 @@
 from typing import Final
+import logging
 
 import tensorflow as tf
 
@@ -31,6 +32,9 @@ def _lowercase_input(input_text, label):
 
 
 def process_data(dataset):
+    logging.info(f"{SEED=}")
+    logging.info(f"{TRAIN_SPLIT=}")
+
     dataset = dataset.map(_lowercase_input)
     dataset = dataset.shuffle(DATASET_SIZE, seed=SEED)
 

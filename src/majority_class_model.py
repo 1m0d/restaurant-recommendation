@@ -1,3 +1,6 @@
+import logging
+
+
 def score_input_majority_class(_input_text):
     return "inform"
 
@@ -14,6 +17,4 @@ def evaluate_majority_class(test_dataset):
             incorrect += 1
 
     accuracy = correct / (correct + incorrect)
-    print(f"Accuracy for majority class model: {(accuracy * 100):.2f}%")
-
-
+    logging.info(f"Accuracy for majority class model: {(accuracy * 100):.2f}%")
