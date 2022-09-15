@@ -1,6 +1,3 @@
-from src.data_handler import create_dataset, process_data
-
-
 def score_input_majority_class(_input_text):
     return "inform"
 
@@ -20,6 +17,3 @@ def evaluate_majority_class(test_dataset):
     print(f"Accuracy for majority class model: {(accuracy * 100):.2f}%")
 
 
-dataset = create_dataset("../dialog_acts(1).dat")
-train_dataset, test_dataset = process_data(dataset)
-evaluate_majority_class(test_dataset)
