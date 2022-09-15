@@ -10,6 +10,7 @@ TRAIN_SPLIT = 0.85
 
 
 def create_dataset(path: str):
+    # TODO: replace tensorflow dataset because it only causes pain
     dataset = tf.data.TextLineDataset(
         path,
         compression_type=None,
@@ -36,7 +37,7 @@ def process_data(dataset):
     logging.info(f"{TRAIN_SPLIT=}")
 
     dataset = dataset.map(_lowercase_input)
-    dataset = dataset.shuffle(DATASET_SIZE, seed=SEED)
+    #  dataset = dataset.shuffle(DATASET_SIZE, seed=SEED)
 
     train_dataset_size = int(TRAIN_SPLIT * DATASET_SIZE)
     test_dataset_size = DATASET_SIZE - train_dataset_size
