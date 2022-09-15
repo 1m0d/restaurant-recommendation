@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from src.data_handler import create_dataset, process_data
 from src.majority_class_model import evaluate_majority_class
-from src.rule_based_matching.rule_loader import RuleMatcher
+from src.rule_based_matching.rule_matcher import RuleMatcher
 import sklearn.metrics
 
 
