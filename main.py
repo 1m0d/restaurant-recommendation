@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from src.data_handler import create_dataset, process_data
+from src.decision_tree import DecisionTreeModel
 from src.majority_class_model import evaluate_majority_class
 from src.logistic_regression_model import LogisticRegressionModel
 from src.rule_based_matching.rule_matcher import RuleMatcher
@@ -34,11 +35,11 @@ def main():
 
     # logregression
 
-    train_input = list(train_dataset.map(lambda _input, _: _input).as_numpy_iterator())
+    train_inputs = list(train_dataset.map(lambda _input, _: _input).as_numpy_iterator())
     train_labels = list(train_dataset.map(lambda _, label: label).as_numpy_iterator())
 
-    log_regression_model = LogisticRegressionModel(train_dataset=train_input)
-    train_features = log_regression_model.feature_extraction(dataset=train_input)
+    log_regression_model = LogisticRegressionModel(train_inputs=train_inputs)
+    train_features = log_regression_model.feature_extraction(dataset=train_inputs)
     log_regression_model.model.fit(train_features, train_labels)
 
     test_features = log_regression_model.feature_extraction(dataset=test_input)
@@ -48,6 +49,17 @@ def main():
     logging.info("Classification Report for LogisticRegressionModel")
     logging.info("\n" + sklearn.metrics.classification_report(test_labels, predicted_labels))
 
+    # decision tree
+
+    decision_tree_model = DecisionTreeModel(train_inputs=train_inputs, train_labels=train_labels)
+    train_features = decision_tree_model.feature_extraction(dataset=train_inputs)
+
+    test_features = decision_tree_model.feature_extraction(dataset=test_input)
+    predicted_labels = decision_tree_model.model.predict(test_features)
+    predicted_labels = [label.decode("utf-8") for label in predicted_labels]
+
+    logging.info("Classification Report for DecisionTreeModel")
+    logging.info("\n" + sklearn.metrics.classification_report(test_labels, predicted_labels))
 
 if __name__ == '__main__':
     main()
