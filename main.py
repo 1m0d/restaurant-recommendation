@@ -1,4 +1,6 @@
+import argparse
 import logging
+import pathlib
 from datetime import datetime
 from src.data_handler import create_dataset, process_data
 from src.decision_tree import DecisionTreeModel
@@ -20,7 +22,19 @@ def main():
         format="[%(asctime)s] [%(levelname)s] %(message)s",
     )
 
-    dataset = create_dataset("../dialog_acts(1).dat")
+    parser = argparse.ArgumentParser(description="text classification")
+    parser.add_argument(
+        "--dataset_path",
+        type=pathlib.Path,
+        help="Path to dialog classification dataset",
+        default="./dialog_acts.dat",
+    )
+    args = parser.parse_args()
+
+    if not args.dataset_path.is_file():
+        raise Exception(f"dialog dataset not found, {args.dataset_path=}")
+
+    dataset = create_dataset(args.dataset_path)
     train_dataset, test_dataset = process_data(dataset)
 
     evaluate_majority_class(test_dataset)
