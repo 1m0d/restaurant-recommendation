@@ -13,28 +13,8 @@ from src.rule_based_matching.rule_matcher import RuleMatcher
 
 
 def main():
-    date_time = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    logging.basicConfig(
-        handlers=[
-            logging.FileHandler(f"experiment_logs/experiment_{date_time}.log"),
-            logging.StreamHandler(),
-        ],
-        encoding="utf-8",
-        level=logging.INFO,
-        format="[%(asctime)s] [%(levelname)s] %(message)s",
-    )
-
-    parser = argparse.ArgumentParser(description="text classification")
-    parser.add_argument(
-        "--dataset_path",
-        type=pathlib.Path,
-        help="Path to dialog classification dataset",
-        default="./dialog_acts.dat",
-    )
-    args = parser.parse_args()
-
-    if not args.dataset_path.is_file():
-        raise Exception(f"dialog dataset not found, {args.dataset_path=}")
+    _setup_logging()
+    args = _parse_arguments()
 
     dataset = create_dataset(args.dataset_path)
     train_dataset, test_dataset = process_data(dataset)
@@ -86,6 +66,35 @@ def main():
     logging.info("Classification Report for DecisionTreeModel")
     logging.info(
         "\n" + sklearn.metrics.classification_report(test_labels, predicted_labels)
+    )
+
+def _parse_arguments():
+    parser = argparse.ArgumentParser(description="text classification")
+    parser.add_argument(
+        "--dataset_path",
+        type=pathlib.Path,
+        help="Path to dialog classification dataset",
+        default="./dialog_acts.dat",
+    )
+    args = parser.parse_args()
+
+    if not args.dataset_path.is_file():
+        raise Exception(f"dialog dataset not found, {args.dataset_path=}")
+
+    return args
+
+def _setup_logging():
+    logdir = "experiment_logs"
+    pathlib.Path(logdir).mkdir(parents=True, exist_ok=True)
+    date_time = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+    logging.basicConfig(
+        handlers=[
+            logging.FileHandler(f"{logdir}/experiment_{date_time}.log"),
+            logging.StreamHandler(),
+        ],
+        encoding="utf-8",
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] %(message)s",
     )
 
 
