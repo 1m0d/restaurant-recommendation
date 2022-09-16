@@ -11,8 +11,11 @@ import sklearn.metrics
 def main():
     date_time = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
     logging.basicConfig(
-        filename=f'experiment_logs/experiment_{date_time}.log',
-        encoding='utf-8',
+        handlers=[
+            logging.FileHandler(f"experiment_logs/experiment_{date_time}.log"),
+            logging.StreamHandler(),
+        ],
+        encoding="utf-8",
         level=logging.INFO,
         format="[%(asctime)s] [%(levelname)s] %(message)s",
     )
