@@ -2,12 +2,14 @@ import argparse
 import logging
 import pathlib
 from datetime import datetime
+
+import sklearn.metrics
+
 from src.data_handler import create_dataset, process_data
 from src.decision_tree import DecisionTreeModel
-from src.majority_class_model import evaluate_majority_class
 from src.logistic_regression_model import LogisticRegressionModel
+from src.majority_class_model import evaluate_majority_class
 from src.rule_based_matching.rule_matcher import RuleMatcher
-import sklearn.metrics
 
 
 def main():
@@ -48,7 +50,9 @@ def main():
     predicted_labels = rule_matcher.predict(test_input)
 
     logging.info("Classification Report for Rule Based Matching")
-    logging.info("\n" + sklearn.metrics.classification_report(test_labels, predicted_labels))
+    logging.info(
+        "\n" + sklearn.metrics.classification_report(test_labels, predicted_labels)
+    )
 
     # logregression
 
@@ -64,11 +68,15 @@ def main():
     predicted_labels = [label.decode("utf-8") for label in predicted_labels]
 
     logging.info("Classification Report for LogisticRegressionModel")
-    logging.info("\n" + sklearn.metrics.classification_report(test_labels, predicted_labels))
+    logging.info(
+        "\n" + sklearn.metrics.classification_report(test_labels, predicted_labels)
+    )
 
     # decision tree
 
-    decision_tree_model = DecisionTreeModel(train_inputs=train_inputs, train_labels=train_labels)
+    decision_tree_model = DecisionTreeModel(
+        train_inputs=train_inputs, train_labels=train_labels
+    )
     train_features = decision_tree_model.feature_extraction(dataset=train_inputs)
 
     test_features = decision_tree_model.feature_extraction(dataset=test_input)
@@ -76,7 +84,10 @@ def main():
     predicted_labels = [label.decode("utf-8") for label in predicted_labels]
 
     logging.info("Classification Report for DecisionTreeModel")
-    logging.info("\n" + sklearn.metrics.classification_report(test_labels, predicted_labels))
+    logging.info(
+        "\n" + sklearn.metrics.classification_report(test_labels, predicted_labels)
+    )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

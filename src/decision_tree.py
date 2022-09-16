@@ -1,6 +1,8 @@
 from typing import Iterable
+
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.tree import DecisionTreeClassifier
+
 
 class DecisionTreeModel:
     def __init__(self, train_inputs: Iterable, train_labels: Iterable):

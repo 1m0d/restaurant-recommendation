@@ -1,7 +1,7 @@
-from collections.abc import Iterable
 import csv
 import os
 import re
+from collections.abc import Iterable
 from typing import Final, Union
 
 from tensorflow.python.util.lazy_loader import logging

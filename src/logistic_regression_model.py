@@ -1,6 +1,8 @@
 from typing import Iterable
+
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
+
 
 class LogisticRegressionModel:
     def __init__(self, train_inputs: Iterable):
