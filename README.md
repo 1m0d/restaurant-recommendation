@@ -7,6 +7,11 @@ pipenv install
 ```
 
 ## Run
+enter virtual environment
+```shell
+pipenv shell
+```
+
 ```shell
 python main.py
 ```
@@ -20,3 +25,5 @@ optional arguments:
   --dataset_path DATASET_PATH
                         Path to dialog classification dataset
 ```
+
+Experiment logging will be available in `experiment_logs` directory.
