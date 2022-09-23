@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import re
-import Levenshtein
+import Levenshtein #Levenshtein is a pip install if Levenshtein doesnt work install Levenshtein-Wheel
 
 def key_word_matching(rules, string):
     (area_patterns,
