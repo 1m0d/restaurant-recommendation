@@ -4,8 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-tensorflow = "~=2.10.0"
-scikit-learn = "~=1.1.2"
+tensorflow = "~=2.10"
+scikit-learn = "~=1.1"
+transitions = "~=0.9"
 
 [dev-packages]
 ipdb = "*"
