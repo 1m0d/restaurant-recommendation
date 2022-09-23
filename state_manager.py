@@ -1,4 +1,5 @@
 from transitions import Machine
+import numpy as np
 # from https://github.com/pytransitions/transitions
 
 #NOTE that you cannot immediately pass the dialog act into this.
@@ -28,6 +29,7 @@ class StateManager(object):
     def __init__(self, name, text_zero):
         self.name = name
         self.last_text = text_zero
+        self.keyword_slots = [None, None, None] #1st is for food_type, 2nd is for area, 3rd is for price_range
         self.machine = Machine(model=self, states=StateManager.states, initial='neutral')
 
         #self.machine.add_transition(trigger='', source='', dest='')
@@ -40,32 +42,32 @@ class StateManager(object):
         
         #The paths for ack and null are boring so far
         self.machine.add_transition(trigger='ack', source='*', dest='neutral')
-        self.machine.add_transition(trigger='null', source='*', dest='neutral')
+        self.machine.add_transition(trigger='null', source='*', dest='neutral') #might need to change
         
         #Restart will always lead you to the initial text again (minus the welcome), stating your options
         self.machine.add_transition(trigger='restart', source='*', dest='neutral', after='restate_options')
         
         #In the following cases, affirm should do something then lead to neutral
         self.machine.add_transition(trigger='affirm', source='suggest_to_replace', dest='check_table', before='override_slot')
-        self.machine.add_transition(trigger='affirm', source='suggest_other_keyword', dest='check_table', before='update_slot')
+        self.machine.add_transition(trigger='affirm', source='suggest_other_keyword', dest='check_table', before='override_slot')
         
         #In neutral/unknown cases, these will all repeat the most recent message (in similar or the same wording)
         self.machine.add_transition(trigger='repeat', source='*', dest='repeat_text')
         self.machine.add_transition(trigger='affirm', source='*', dest='repeat_text')
         
         #When inform keyword is known, add it to the slot table
-        self.machine.add_transition(trigger='inform_known', source='*', dest='check_table', before='update_slot')
+        self.machine.add_transition(trigger='inform_known', source='*', dest='check_table', before='override_slot')
         
         #These are straightforward
         self.machine.add_transition(trigger='inform_unknown', source='*', dest='suggest_other_keyword')
-        self.machine.add_transition(trigger='hello', source='*', dest='greet')
-        self.machine.add_transition(trigger='bye', source='*', dest='say_bye_exit')
+        self.machine.add_transition(trigger='hello', source='*', dest='greet', after='say_hello')
+        self.machine.add_transition(trigger='bye', source='*', dest='say_bye_exit', after='say_goodbye')
         self.machine.add_transition(trigger='reqalts', source='*', dest='suggest_to_replace')
         self.machine.add_transition(trigger='thankyou', source='*', dest='youre_welcome')
 
         #When deny is detected with some keyword, we label it as !thatkeyword, as a preference AGAINST
         self.machine.add_transition(trigger='deny', source='*', dest='neutral')
-        self.machine.add_transition(trigger='deny_w_info', source='*', dest='check_table', before='override_slot')
+        #DONT USE FOR NOW self.machine.add_transition(trigger='deny_w_info', source='*', dest='check_table', before='override_slot')
 
         
         #For now, these do the same thing(like in most example cases)
@@ -89,18 +91,19 @@ class StateManager(object):
         print(self.last_text)
         
     def restate_options(self):
-        print("SOME LINE INDICATING WHAT YOU CAN ASK THE MACHINE")
+        print("SOME LINE SHOWING AN OVERVIEW OF WHAT YOU CAN ASK THE MACHINE")
         
     #PROBLEM with the following three functions -- 
     #idk if in such a state manager how you'd pass arguments into functions. Maybe define outside class.
     def append_last_text(self, text):
         self.last_text = text
               
-    def override_slot(self, keyword):
-        return "add later"
+    def override_slot(self, keyword_type, keyword):
+        if (keyword_type == "food"):
+            self.keyword_slots[0] = keyword
+        elif (keyword_type == "area"):
+            self.keyword_slots[1] = keyword
+        else:
+            self.keyword_slots[2] = keyword
         #This function should override the keyword currently in the respective slot
         #NOTE that if it came from a "deny_w_keyword" it should be read as anything BUT that keyword
-        
-    def update_slot(self, keyword):
-        return "add later 2"
-        #This function should add the keyword to the correct slot (could prob be merged with above function)
