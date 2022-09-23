@@ -6,7 +6,6 @@ NOTE: that you cannot immediately pass the dialog act into this.
 To call the right state trigger, you need to take into account the following:
 Inform is split into inform_known and inform_unknown, to account for people asking for keywords we don't know.
 There is a trigger do_check_table which needs to be called when state check_table is entered.
-Did not know how to code this last part, so it will need to be written into the code which calls on this state manager.
 
 NOTE: that the functions at the end each have an argument other than self. IDK how this works implementation wise... maybe they should just be defined outside this class.
 """
@@ -115,10 +114,10 @@ class StateManager:
             trigger="reqmore", source="*", dest="suggest_restaurant"
         )
 
-        # This would need to be triggered by a non-dialog act
-        self.machine.add_transition(
-            trigger="do_check_table", source="check_table", dest="suggest_restaurant", before="checking_table"
+        self.machine.add_transition( #should comes from source "check_table", but put "*" for good measure
+            trigger="missing_info", source="*", dest="request_missing_info"
         )
+
 
     def say_hello(self):
         print("Hello!")
@@ -135,8 +134,6 @@ class StateManager:
     def youre_welcome(self):
         print("You're welcome.")
 
-    # PROBLEM with the following three functions --
-    # idk if in such a state manager how you'd pass arguments into functions. Maybe define outside class.
     def append_last_text(self, text):
         self.last_text = text
 
@@ -147,8 +144,10 @@ class StateManager:
             self.keyword_slots[1] = keyword
         else:
             self.keyword_slots[2] = keyword
-        # This function should override the keyword currently in the respective slot
-        # NOTE that if it came from a "deny_w_keyword" it should be read as anything BUT that keyword
+        #We shouldn't forget to allow for the keyword "don't care"
 
     def checking_table(self):
-        pass
+        if (None in self.keyword_slots): 
+            self.machine.missing_info()
+        else:
+            self.machine.reqmore()
