@@ -1,17 +1,19 @@
+from typing import Final
 from transitions import Machine
 
+"""
+NOTE: that you cannot immediately pass the dialog act into this.
+To call the right state trigger, you need to take into account the following:
+Inform is split into inform_known and inform_unknown, to account for people asking for keywords we don't know.
+There is a trigger do_check_table which needs to be called when state check_table is entered.
+Did not know how to code this last part, so it will need to be written into the code which calls on this state manager.
 
-# NOTE that you cannot immediately pass the dialog act into this.
-# To call the right state trigger, you need to take into account the following:
-# Inform is split into inform_known and inform_unknown, to account for people asking for keywords we don't know.
-# Deny is split into deny and deny_w_info, so that when a deny function gets passed with a keyword, we can read it as a dislike (opposite of a preference).
-# There is a trigger do_check_table which needs to be called when state check_table is entered.
-# Did not know how to code this last part, so it will need to be written into the code which calls on this state manager.
-# ALSO NOTE that the functions at the end each have an argument other than self. IDK how this works implementation wise... maybe they should just be defined outside this class.
+NOTE: that the functions at the end each have an argument other than self. IDK how this works implementation wise... maybe they should just be defined outside this class.
+"""
 
 
-class StateManager(object):
-    states = [
+class StateManager:
+    states: Final = [
         "neutral",  # 0 - This should lead to maybe 2-3 variations in text responses:
         # Such as repeating info about a recently recommended restaurant
         # or asking again "how can I help you further?"
@@ -24,30 +26,21 @@ class StateManager(object):
         "suggest_to_replace",  # 7
         "repeat_statement",  # 8
         "suggest_other_keyword",  # 9
-        "check_table",
-    ]  # 10 check table of slots to see if its full
+        "check_table",  # 10 check table of slots to see if its full
+    ]
 
-    def __init__(self, name, text_zero):
-        self.name = name
+    def __init__(self, text_zero: str):
         self.last_text = text_zero
         self.keyword_slots = [
             None,
             None,
             None,
         ]  # 1st is for food_type, 2nd is for area, 3rd is for price_range
+
         self.machine = Machine(
-            model=self, states=StateManager.states, initial="neutral"
+            model=self, states=self.states, initial="neutral"
         )
 
-        # self.machine.add_transition(trigger='', source='', dest='')
-
-        # The following two lines are moot so far, but leaving them in, just in case we need to add a "before/after"
-        self.machine.add_transition(
-            trigger="negate", source="suggest_other_keyword", dest="neutral"
-        )
-        self.machine.add_transition(
-            trigger="negate", source="suggest_to_replace", dest="neutral"
-        )
         # The universal path for negate
         self.machine.add_transition(trigger="negate", source="*", dest="neutral")
 
@@ -124,7 +117,7 @@ class StateManager(object):
 
         # This would need to be triggered by a non-dialog act
         self.machine.add_transition(
-            trigger="do_check_table", source="check_table", dest="suggest_restaurant"
+            trigger="do_check_table", source="check_table", dest="suggest_restaurant", before="checking_table"
         )
 
     def say_hello(self):
@@ -138,6 +131,9 @@ class StateManager(object):
 
     def restate_options(self):
         print("SOME LINE SHOWING AN OVERVIEW OF WHAT YOU CAN ASK THE MACHINE")
+
+    def youre_welcome(self):
+        print("You're welcome.")
 
     # PROBLEM with the following three functions --
     # idk if in such a state manager how you'd pass arguments into functions. Maybe define outside class.
@@ -153,3 +149,6 @@ class StateManager(object):
             self.keyword_slots[2] = keyword
         # This function should override the keyword currently in the respective slot
         # NOTE that if it came from a "deny_w_keyword" it should be read as anything BUT that keyword
+
+    def checking_table(self):
+        pass
