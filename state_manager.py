@@ -1,18 +1,18 @@
 from typing import Final
 from transitions import Machine
 
-"""
-NOTE: that you cannot immediately pass the dialog act into this.
-To call the right state trigger, you need to take into account the following:
-Inform is split into inform_known and inform_unknown, to account for people asking for keywords we don't know.
-There is a trigger do_check_table which needs to be called when state check_table is entered.
-
-NOTE: that the functions at the end each have an argument other than self. IDK how this works implementation wise... maybe they should just be defined outside this class.
-"""
-
 
 class StateManager:
-    states: Final = [
+    """
+    NOTE: that you cannot immediately pass the dialog act into this.
+    To call the right state trigger, you need to take into account the following:
+    Inform is split into inform_known and inform_unknown, to account for people asking for keywords we don't know.
+    There is a trigger do_check_table which needs to be called when state check_table is entered.
+
+    NOTE: that the functions at the end each have an argument other than self. IDK how this works implementation wise... maybe they should just be defined outside this class.
+    """
+
+    STATES: Final = [
         "neutral",  # 0 - This should lead to maybe 2-3 variations in text responses:
         # Such as repeating info about a recently recommended restaurant
         # or asking again "how can I help you further?"
@@ -25,7 +25,7 @@ class StateManager:
         "suggest_to_replace",  # 7
         "repeat_statement",  # 8
         "suggest_other_keyword",  # 9
-        "check_table",  # 10 check table of slots to see if its full
+        "check_table",  # 10
     ]
 
     def __init__(self, text_zero: str):
@@ -36,9 +36,7 @@ class StateManager:
             None,
         ]  # 1st is for food_type, 2nd is for area, 3rd is for price_range
 
-        self.machine = Machine(
-            model=self, states=self.states, initial="neutral"
-        )
+        self.machine = Machine(model=self, states=self.STATES, initial="neutral")
 
         # The universal path for negate
         self.machine.add_transition(trigger="negate", source="*", dest="neutral")
@@ -114,10 +112,9 @@ class StateManager:
             trigger="reqmore", source="*", dest="suggest_restaurant"
         )
 
-        self.machine.add_transition( #should comes from source "check_table", but put "*" for good measure
+        self.machine.add_transition(  # should comes from source "check_table", but put "*" for good measure
             trigger="missing_info", source="*", dest="request_missing_info"
         )
-
 
     def say_hello(self):
         print("Hello!")
@@ -144,10 +141,10 @@ class StateManager:
             self.keyword_slots[1] = keyword
         else:
             self.keyword_slots[2] = keyword
-        #We shouldn't forget to allow for the keyword "don't care"
+        # We shouldn't forget to allow for the keyword "don't care"
 
     def checking_table(self):
-        if (None in self.keyword_slots): 
+        if None in self.keyword_slots:
             self.machine.missing_info()
         else:
             self.machine.reqmore()
