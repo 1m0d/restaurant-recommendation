@@ -7,6 +7,7 @@ name = "pypi"
 tensorflow = "~=2.10"
 scikit-learn = "~=1.1"
 transitions = "~=0.9"
+Levenshtein = "~=0.12"
 
 [dev-packages]
 ipdb = "*"
