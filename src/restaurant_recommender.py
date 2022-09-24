@@ -1,27 +1,13 @@
-from dataclasses import dataclass
-from typing import List, Optional
-from src.models.logistic_regression_model import LogisticRegressionModel
 from src.state_manager import StateManager
-
-
-@dataclass
-class Preferences:
-    food_type: Optional[str] = None
-    area: Optional[str] = None
-    price_range: Optional[str] = None
-
-    def missing_preferences(self) -> List:
-        return [field_name for field_name, value in self.__dict__.items() if not value]
-
-    def is_full(self) -> bool:
-        return all(self.__dict__)
-
+from src.preferences import Preferences
 
 class RestaurantRecommender:
     def __init__(self, classifier):
         self.state_manager = StateManager("")
         self.preferences = Preferences()
         self.classifier = classifier
+        self.matched_preferences = []  #  TODO: remove in the end if turns out not needed
+        self.recommend_restaurants = []
 
     def run(self):
         print("Hello, how can I help you?")
@@ -33,7 +19,31 @@ class RestaurantRecommender:
             print(f"{predicted_act=}")
 
             if predicted_act == "inform":
-                preferences = keyword_match(user_input)
+                matched_preferences, levenshtein_used = keyword_match(user_input)
+                self.matched_preferences.append(matches)
+                self.preferences += matched_preferences
 
-def keyword_match(input_text):
+                if levenshtein_used:
+                    predicted_act = "inform_unknown"
+                else:
+                    if self.preferences.is_full:
+                        self.recommend_restaurants.append(recommend_restaurant())
+                        self.state_manager.call("restaurant_recommended")
+
+                    predicted_act = "inform_known"
+
+            self.state_manager.call(predicted_act)
+            self.state_to_utterance(self.state_manager.state, self.preference)
+
+            if self.state_manager.state == "final":
+                break
+
+    def state_to_utterance(self) -> str:
+        pass
+
+def keyword_match(input_text) -> (Preferences, bool):
+    pass
+
+def recommend_restaurant(preferences) -> str:
+    #  print()
     pass
