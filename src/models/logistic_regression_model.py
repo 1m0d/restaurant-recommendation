@@ -5,10 +5,13 @@ from sklearn.linear_model import LogisticRegression
 
 
 class LogisticRegressionModel:
-    def __init__(self, train_inputs: Iterable):
+    def __init__(self, train_inputs: Iterable, train_labels: Iterable):
         self.model = LogisticRegression()
         self.count_vectorizer = CountVectorizer()
         self.count_vectorizer.fit(train_inputs)
+
+        train_features = self.feature_extraction(dataset=train_inputs)
+        self.model.fit(train_features, train_labels)
 
     def feature_extraction(self, dataset: Iterable):
         return self.count_vectorizer.transform(dataset)

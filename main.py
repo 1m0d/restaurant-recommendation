@@ -2,8 +2,11 @@ import argparse
 import logging
 import pathlib
 from datetime import datetime
+from src.data_handler import create_dataset, process_data
 
 from src.evaluate_models import evaluate_models
+from src.models.logistic_regression_model import LogisticRegressionModel
+from src.restaurant_recommender import RestaurantRecommender
 
 
 def main():
@@ -13,7 +16,18 @@ def main():
     if args.objective == "evaluate":
         evaluate_models(dataset_path=args.dataset_path)
     elif args.objective == "recommend":
-        pass
+        dataset = create_dataset(args.dataset_path)
+        train_dataset, test_dataset = process_data(dataset)
+
+        train_inputs = list(train_dataset.map(lambda _input, _: _input).as_numpy_iterator())
+        train_labels = list(train_dataset.map(lambda _, label: label).as_numpy_iterator())
+        test_inputs = list(test_dataset.map(lambda _input, _: _input).as_numpy_iterator())
+        test_labels = list(test_dataset.map(lambda _, label: label).as_numpy_iterator())
+        inputs = train_inputs + test_inputs
+        labels = train_labels + test_labels
+
+        classifier = LogisticRegressionModel(inputs, labels)
+        RestaurantRecommender(classifier=classifier).run()
 
 
 def _parse_arguments():

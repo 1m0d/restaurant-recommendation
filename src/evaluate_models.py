@@ -33,11 +33,9 @@ def evaluate_models(dataset_path: str):
     train_inputs = list(train_dataset.map(lambda _input, _: _input).as_numpy_iterator())
     train_labels = list(train_dataset.map(lambda _, label: label).as_numpy_iterator())
 
-    log_regression_model = LogisticRegressionModel(train_inputs=train_inputs)
-    train_features = log_regression_model.feature_extraction(dataset=train_inputs)
-    log_regression_model.model.fit(train_features, train_labels)
+    log_regression_model = LogisticRegressionModel(train_inputs=train_inputs, train_labels=train_labels)
 
-    test_features = log_regression_model.feature_extraction(dataset=test_input)
+    test_features = log_regression_model.feature_extraction(sample=test_input)
     predicted_labels = log_regression_model.model.predict(test_features)
     predicted_labels = [label.decode("utf-8") for label in predicted_labels]
 
