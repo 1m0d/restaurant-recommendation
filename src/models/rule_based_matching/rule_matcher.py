@@ -4,9 +4,9 @@ import re
 from collections.abc import Iterable
 from typing import Final, Union
 
-from tensorflow.python.util.lazy_loader import logging
+import logging
 
-from src.majority_class_model import score_input_majority_class
+from src.models.majority_class_model import score_input_majority_class
 
 dirname = os.path.dirname(__file__)
 

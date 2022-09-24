@@ -6,10 +6,10 @@ from datetime import datetime
 import sklearn.metrics
 
 from src.data_handler import create_dataset, process_data
-from src.decision_tree import DecisionTreeModel
-from src.logistic_regression_model import LogisticRegressionModel
-from src.majority_class_model import evaluate_majority_class
-from src.rule_based_matching.rule_matcher import RuleMatcher
+from src.models.decision_tree import DecisionTreeModel
+from src.models.logistic_regression_model import LogisticRegressionModel
+from src.models.majority_class_model import evaluate_majority_class
+from src.models.rule_based_matching.rule_matcher import RuleMatcher
 
 
 def main():
