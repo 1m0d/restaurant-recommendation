@@ -1,3 +1,4 @@
+import logging
 from typing import Iterable
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -6,7 +7,8 @@ from sklearn.linear_model import LogisticRegression
 
 class LogisticRegressionModel:
     def __init__(self, train_inputs: Iterable, train_labels: Iterable):
-        self.model = LogisticRegression()
+        logging.info("Training Logistic Regression Model")
+        self.model = LogisticRegression(max_iter=150)
         self.count_vectorizer = CountVectorizer()
         self.count_vectorizer.fit(train_inputs)
 
