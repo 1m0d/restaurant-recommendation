@@ -1,5 +1,8 @@
 from typing import Final
+
 from transitions import Machine
+
+from src.preferences import Preferences
 
 
 class StateManager:
@@ -28,13 +31,9 @@ class StateManager:
         "check_table",  # 10
     ]
 
-    def __init__(self, text_zero: str):
-        self.last_text = text_zero
-        self.keyword_slots = [
-            None,
-            None,
-            None,
-        ]  # 1st is for food_type, 2nd is for area, 3rd is for price_range
+    def __init__(self):
+        self.last_text = ""
+        self.current_preferences = Preferences()
 
         self.machine = Machine(model=self, states=self.STATES, initial="neutral")
 
@@ -57,34 +56,28 @@ class StateManager:
             trigger="affirm",
             source="suggest_to_replace",
             dest="check_table",
-            before="override_slot",
         )
         self.machine.add_transition(
             trigger="affirm",
             source="suggest_other_keyword",
             dest="check_table",
-            before="override_slot",
         )
 
         # In neutral/unknown cases, these will all repeat the most recent message (in similar or the same wording)
         self.machine.add_transition(trigger="repeat", source="*", dest="repeat_text")
         self.machine.add_transition(trigger="affirm", source="*", dest="repeat_text")
 
-        # When inform keyword is known, add it to the slot table
         self.machine.add_transition(
             trigger="inform_known",
             source="*",
-            dest="check_table",
-            before="override_slot",
+            dest="request_missing_info",
         )
 
         # These are straightforward
         self.machine.add_transition(
             trigger="inform_unknown", source="*", dest="suggest_other_keyword"
         )
-        self.machine.add_transition(
-            trigger="hello", source="*", dest="greet", after="say_hello"
-        )
+        self.machine.add_transition(trigger="hello", source="*", dest="greet")
         self.machine.add_transition(
             trigger="bye", source="*", dest="say_bye_exit", after="say_goodbye"
         )
@@ -130,21 +123,3 @@ class StateManager:
 
     def youre_welcome(self):
         print("You're welcome.")
-
-    def append_last_text(self, text):
-        self.last_text = text
-
-    def override_slot(self, keyword_type, keyword):
-        if keyword_type == "food":
-            self.keyword_slots[0] = keyword
-        elif keyword_type == "area":
-            self.keyword_slots[1] = keyword
-        else:
-            self.keyword_slots[2] = keyword
-        # We shouldn't forget to allow for the keyword "don't care"
-
-    def checking_table(self):
-        if None in self.keyword_slots:
-            self.machine.missing_info()
-        else:
-            self.machine.reqmore()
