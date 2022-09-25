@@ -18,7 +18,7 @@ class RestaurantRecommender:
         self.logger = logging.getLogger(__name__)
 
     def run(self):
-        print("Hello, how can I help you?")
+        DialogHandler.initial()
 
         while True:
             user_input = input().lower()
@@ -59,6 +59,16 @@ class RestaurantRecommender:
         self.logger.debug(f"classified input as {trigger}")
 
         return trigger
+
+    def _state_to_utterance(self):
+        """WIP"""
+        if self.state_manager.state == "request_missing_info":
+            DialogHandler.request_missing_info(
+                missing_keyword=self.preferences.missing_preferences()[0]
+            )
+        else:
+            func = getattr(DialogHandler, self.state_manager.state)
+            func()
 
     def _find_restaurants(self):
         self.recommend_restaurants = self.restaurants.query(
