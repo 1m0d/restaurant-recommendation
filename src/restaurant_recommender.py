@@ -20,7 +20,7 @@ class RestaurantRecommender:
     def run(self):
         DialogHandler.initial()
 
-        while True:
+        while self.state_manager.state != "final":
             user_input = input().lower()
             trigger = self._input_to_trigger(user_input=user_input)
             if trigger == "inform":
@@ -49,9 +49,6 @@ class RestaurantRecommender:
             trigger_func()
 
             self._state_to_utterance()
-
-            if self.state_manager.state == "final":
-                break
 
     def _input_to_trigger(self, user_input) -> str:
         feature_vector = self.classifier.feature_extraction([user_input])
