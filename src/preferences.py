@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Final, List, Optional
 
+
 @dataclass
 class Preferences:
     food_type: Optional[str] = None
@@ -10,7 +11,7 @@ class Preferences:
     CSV_ALIASES: Final = {
         "food_type": "food",
         "area": "area",
-        "price_range": "pricerange"
+        "price_range": "pricerange",
     }
 
     def missing_preferences(self) -> List:
@@ -20,10 +21,15 @@ class Preferences:
         return all(self.__dict__)
 
     def __add__(self, other):
-        """ Merges preferences, if value set in both instances {other} has preference """
+        """Merges preferences, if value set in both instances {other} has preference"""
         for key, value in other.__dict__.items():
             if value:
                 setattr(self, key, value)
 
     def to_pandas_query(self) -> str:
-        return " & ".join([f"{self.CSV_ALIASES[key]} == {value}" for key, value in self.__dict__.items()])
+        return " & ".join(
+            [
+                f"{self.CSV_ALIASES[key]} == {value}"
+                for key, value in self.__dict__.items()
+            ]
+        )

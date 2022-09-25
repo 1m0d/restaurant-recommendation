@@ -1,10 +1,9 @@
 import csv
+import logging
 import os
 import re
 from collections.abc import Iterable
 from typing import Final, Union
-
-import logging
 
 from src.models.majority_class_model import score_input_majority_class
 
