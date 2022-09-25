@@ -1,27 +1,34 @@
 import argparse
 import logging
+import os
+
 import pathlib
 from datetime import datetime
-from src.data_handler import create_dataset, process_data
 
+from src.data_handler import create_dataset, process_data
 from src.evaluate_models import evaluate_models
 from src.models.logistic_regression_model import LogisticRegressionModel
 from src.restaurant_recommender import RestaurantRecommender
 
 
 def main():
-    _setup_logging()
     args = _parse_arguments()
-
+    _setup_logging(is_debug=args.debug)
     if args.objective == "evaluate":
         evaluate_models(dataset_path=args.dataset_path)
     elif args.objective == "recommend":
         dataset = create_dataset(args.dataset_path)
         train_dataset, test_dataset = process_data(dataset)
 
-        train_inputs = list(train_dataset.map(lambda _input, _: _input).as_numpy_iterator())
-        train_labels = list(train_dataset.map(lambda _, label: label).as_numpy_iterator())
-        test_inputs = list(test_dataset.map(lambda _input, _: _input).as_numpy_iterator())
+        train_inputs = list(
+            train_dataset.map(lambda _input, _: _input).as_numpy_iterator()
+        )
+        train_labels = list(
+            train_dataset.map(lambda _, label: label).as_numpy_iterator()
+        )
+        test_inputs = list(
+            test_dataset.map(lambda _input, _: _input).as_numpy_iterator()
+        )
         test_labels = list(test_dataset.map(lambda _, label: label).as_numpy_iterator())
         inputs = train_inputs + test_inputs
         labels = train_labels + test_labels
@@ -34,17 +41,23 @@ def _parse_arguments():
     parser = argparse.ArgumentParser(description="text classification")
     parser.add_argument(
         "objective",
-        default='recommend',
-        const='recommend',
-        nargs='?',
-        choices=['evaluate', 'recommend'],
-        help="main objective of program run, defaults to recommend restaurant"
+        default="recommend",
+        const="recommend",
+        nargs="?",
+        choices=["evaluate", "recommend"],
+        help="main objective of program run, defaults to recommend restaurant",
     )
     parser.add_argument(
         "--dataset_path",
         type=pathlib.Path,
-        help="Path to dialog classification dataset",
+        help="path to dialog classification dataset",
         default="./dialog_acts.dat",
+    )
+    parser.add_argument(
+        "--debug",
+        const="debug",
+        help="set loglevel to Debug",
+        nargs="?",
     )
     args = parser.parse_args()
 
@@ -53,7 +66,13 @@ def _parse_arguments():
 
     return args
 
-def _setup_logging():
+
+def _setup_logging(is_debug=False):
+    if is_debug:
+        loglevel = logging.DEBUG
+    else:
+        loglevel = logging.INFO
+
     logdir = "experiment_logs"
     pathlib.Path(logdir).mkdir(parents=True, exist_ok=True)
     date_time = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
@@ -63,7 +82,7 @@ def _setup_logging():
             logging.StreamHandler(),
         ],
         encoding="utf-8",
-        level=logging.INFO,
+        level=loglevel,
         format="[%(asctime)s] [%(levelname)s] %(message)s",
     )
 
