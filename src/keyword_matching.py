@@ -14,7 +14,7 @@ def key_word_matching(string):
     (x.food_type, bool2) = matcher(food_patterns,string)
     (x.price, bool3) = matcher(price_patterns,string)
              
-    return(x, bool1 & bool2 & bool3)
+    return(x, bool1 or bool2 or bool3)
 
 def get_patterns():
     table = pd.read_csv('restaurant_info.csv')
