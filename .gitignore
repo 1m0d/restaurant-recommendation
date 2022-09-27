@@ -1,2 +1,5 @@
 /experiment_logs/*
 /dialog_acts.dat
+
+# compiled python files
+*.pyc
