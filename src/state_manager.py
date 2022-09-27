@@ -1,3 +1,4 @@
+import logging
 from typing import Final
 
 from transitions import Machine
@@ -31,7 +32,9 @@ class StateManager:
         "check_table",  # 10
     ]
 
-    def __init__(self):
+    def __init__(self, loglevel=logging.WARNING):
+        logging.getLogger("transitions").setLevel(loglevel)
+
         self.last_text = ""
         self.current_preferences = Preferences()
 
@@ -107,6 +110,29 @@ class StateManager:
 
         self.machine.add_transition(  # should comes from source "check_table", but put "*" for good measure
             trigger="missing_info", source="*", dest="request_missing_info"
+        )
+
+        self.machine.add_transition(
+            trigger="preferences_filled", source="*", dest="suggest_restaurant"
+        )
+
+        self.machine.add_transition(
+            trigger="affirm",
+            source="suggest_restaurant",
+            dest="final",
+        )
+
+        self.machine.add_transition(
+            trigger="deny",
+            source="suggest_restaurant",
+            dest="suggest_restaurant",
+        )
+
+        # TODO: what to do when out out of suggestions
+        self.machine.add_transition(
+            trigger="out_of_suggestions",
+            source="*",
+            dest="final",
         )
 
     def say_hello(self):
