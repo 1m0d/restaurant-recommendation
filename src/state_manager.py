@@ -32,13 +32,13 @@ class StateManager:
         "check_table",  # 10
     ]
 
-    def __init__(self, loglevel=logging.WARNING):
+    def __init__(self, loglevel=logging.WARNING, machine_cls=Machine):
         logging.getLogger("transitions").setLevel(loglevel)
 
         self.last_text = ""
         self.current_preferences = Preferences()
 
-        self.machine = Machine(model=self, states=self.STATES, initial="neutral")
+        self.machine = machine_cls(model=self, states=self.STATES, initial="neutral")
 
         # The universal path for negate
         self.machine.add_transition(trigger="negate", source="*", dest="neutral")
