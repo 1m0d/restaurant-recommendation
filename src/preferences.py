@@ -31,7 +31,7 @@ class Preferences:
     def to_pandas_query(self) -> str:
         return " & ".join(
             [
-                f"{self.CSV_ALIASES[key]} == {value}"
+                f"{self.CSV_ALIASES[key]} == '{value}'"
                 for key, value in self.__dict__.items()
             ]
         )
