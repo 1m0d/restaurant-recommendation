@@ -8,11 +8,12 @@ class DialogHandler:
     # "check_table" is a state without dialog, as it should immediately call upon other states, not allow for a set of machine/user dialog yet.
     MACHINE_DIALOGS: Final = {
         "initial": "Welcome to this restaurant recommendation system. You can ask for restaurants by type of food, area, or price range. How can I help you today?",
-        "neutral": [
-            "Remember, you can ask for restaurants by type of food, area, or price range.",
+        #  "neutral": [
+            #  "Remember, you can ask for restaurants by type of food, area, or price range.",
             #  "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.", #  TODO: implement random restaurant suggestion
-            "",
-        ],
+            #  "",
+        #  ],
+        "neutral": "Remember, you can ask for restaurants by type of food, area, or price range.",
         "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.",
         "request_missing_info": "What should the {missing_keyword} of the restaurant be?",  # missing_keyword should say "food type", "area", or "price range"
         #  "request_missing_info": [
