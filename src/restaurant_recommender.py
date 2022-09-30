@@ -8,6 +8,9 @@ from src.keyword_matching import KeywordMatcher
 from src.preferences import Preferences
 from src.state_manager import StateManager
 
+import re
+import Levenshtein
+
 
 class RestaurantRecommender:
     def __init__(self, classifier, csv_path: str = "./restaurant_info.csv"):
@@ -105,3 +108,46 @@ class RestaurantRecommender:
         self.recommend_restaurants = self.restaurants.query(
             self.preferences.to_pandas_query()
         ).itertuples()
+
+def inferencing(consequent, trigger, rules, suggestions):
+    """
+    consequent: specific preference like romantic
+    trigger: how input was classified if deny or negate filter on not romantic
+    rules: inference rules
+    suggestions: current list of suggested restaurants
+    filter suggestions 
+    """
+    wanted = True
+    check = []
+    if trigger in ['deny','negate']:
+        wanted = False
+
+    filter = rules[(rules['consequent'] == consequent) & (rules['wanted'] == wanted)]
+    options = suggestions.values.tolist()
+
+    for option in options:
+        temp = []
+        for _,item in filter.iterrows():
+            temp.append(set(item['antedecent']).issubset(option))
+        check.append(any(temp))
+
+    suggestions['recommend'] = check
+
+    return(suggestions[suggestions['recommend'] == True].reset_index())
+
+def inference_detection(string):
+    """
+    string: user input
+    detect extra preference keywords
+    """
+    patterns = ['touristic', 'romantic', 'children', 'assigned seats', '(\w+(?= restaurant))']
+    matcher = re.compile('|'.join(patterns))
+    item = ""
+    try:
+        item = matcher.search(string).group()
+    except:
+        return(None,False)
+    if item in patterns:
+        return(item,False)
+    else:
+        return(levenshtein(item,patterns),True)
