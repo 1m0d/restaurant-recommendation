@@ -31,7 +31,6 @@ class RestaurantRecommender:
                     matched_preferences,
                     levenshtein_used,
                 ) = self.keyword_matcher.match_keyword(user_input)
-                __import__('ipdb').set_trace()
                 self.preferences += matched_preferences
                 self.last_matched_preferences = matched_preferences
 
@@ -62,6 +61,8 @@ class RestaurantRecommender:
                 if self.preferences.is_full():
                     self._find_restaurants()
                     self.state_manager.preferences_filled()
+            elif self.state_manager.state == "out_of_suggestions":
+                self.preferences = Preferences()
 
             self._state_to_utterance()
 
@@ -91,6 +92,7 @@ class RestaurantRecommender:
                 )
             else:
                 self.state_manager.out_of_suggestions()
+                DialogHandler.out_of_suggestions()
         elif self.state_manager.state == "suggest_other_keyword":
             DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
         elif self.state_manager.state == "suggestion_denied":

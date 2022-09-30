@@ -33,7 +33,8 @@ class DialogHandler:
         ],
         "suggest_other_keyword": "Did you mean {suggested_keyword}?",
         "suggestion_accepted": "Added it to your prefences.",
-        "suggestion_denied": "Sorry, I don't know any restaurants where you can find {prefences}"
+        "suggestion_denied": "Sorry, I don't know any restaurants where you can find {prefences}",
+        "out_of_suggestions": "Sorry I don't know any restaurants like that. Do you want to start over?"
     }
 
     BLUE: Final = "\033[94m"
@@ -100,3 +101,7 @@ class DialogHandler:
     @classmethod
     def repeat_text(cls):
         cls._print(cls.last_text)
+
+    @classmethod
+    def out_of_suggestions(cls):
+        cls._print(cls.MACHINE_DIALOGS["out_of_suggestions"])

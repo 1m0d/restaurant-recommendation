@@ -32,6 +32,7 @@ class StateManager:
         "check_table",  # 10
         "suggestion_accepted",
         "suggestion_denied",
+        "out_of_suggestions",
     ]
 
     def __init__(self, loglevel=logging.WARNING, machine_cls=Machine):
@@ -137,10 +138,24 @@ class StateManager:
             dest="suggestion_denied"
         )
 
-        # TODO: what to do when out out of suggestions
         self.machine.add_transition(
             trigger="out_of_suggestions",
             source="suggest_restaurant",
+            dest="out_of_suggestions",
+        )
+        self.machine.add_transition(
+            trigger="affirm",
+            source="out_of_suggestions",
+            dest="neutral",
+        )
+        self.machine.add_transition(
+            trigger="deny",
+            source="out_of_suggestions",
+            dest="say_bye_exit",
+        )
+        self.machine.add_transition(
+            trigger="negate",
+            source="out_of_suggestions",
             dest="say_bye_exit",
         )
 
