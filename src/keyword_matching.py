@@ -33,12 +33,13 @@ class KeywordMatcher:
         area_regexes = [
             r"((?<=in\sthe\s)\w+)",
             r"(\w+(?= (part)?\s+of\s+(the)?(town|city)))",
+            r"(\w) area"
         ]
         area_patterns = np.concatenate([self.known_areas, area_regexes])
         self.area_pattern = re.compile("|".join(area_patterns))
 
         self.known_foods = self.table.food.unique()
-        food_regexes = [r"((?<=serves\s)\w+)", r"(\w+(?= restaurant))"]
+        food_regexes = [r"((?<=serves\s)\w+)", r"(\w+(?= restaurant))", r"(\w+) food"]
         food_patterns = np.concatenate([self.known_foods, food_regexes])
         self.food_pattern = re.compile("|".join(food_patterns))
 
