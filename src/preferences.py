@@ -20,6 +20,9 @@ class Preferences:
     def is_full(self) -> bool:
         return all(self.__dict__.values())
 
+    def is_empty(self) -> bool:
+        return not any(self.__dict__.values())
+
     def __iadd__(self, other):
         """Merges preferences, if value set in both instances {other} has preference"""
         for key, value in other.__dict__.items():
@@ -35,3 +38,14 @@ class Preferences:
                 for key, value in self.__dict__.items()
             ]
         )
+
+    def __str__(self) -> str:
+        output = ""
+        if self.price_range:
+            output += f"{self.price_range} priced "
+        if self.food_type:
+            output += f"{self.food_type} food "
+        if self.area:
+            output += f"in {self.area}"
+
+        return output

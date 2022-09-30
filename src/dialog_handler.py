@@ -14,7 +14,7 @@ class DialogHandler:
             #  "",
         #  ],
         "neutral": "Remember, you can ask for restaurants by type of food, area, or price range.",
-        "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.",
+        "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food. Address: {postcode} {address}. Is this okay?",
         "request_missing_info": "What should the {missing_keyword} of the restaurant be?",  # missing_keyword should say "food type", "area", or "price range"
         #  "request_missing_info": [
         #  "What should the {missing_keyword} of the restaurant be?",  # missing_keyword should say "food type", "area", or "price range"
@@ -32,13 +32,18 @@ class DialogHandler:
             "Would you like to search for restaurants in the {price_range} price range?",
         ],
         "suggest_other_keyword": "Did you mean {suggested_keyword}?",
+        "suggestion_accepted": "Added it to your prefences.",
+        "suggestion_denied": "Sorry, I don't know any restaurants where you can find {prefences}"
     }
 
     BLUE: Final = "\033[94m"
     END_COLOR: Final = "\033[0m"
 
+    last_text = ""
+
     @classmethod
     def _print(cls, string: str):
+        cls.last_text = string
         print(cls.BLUE + string + cls.END_COLOR)
 
     @classmethod
@@ -51,7 +56,7 @@ class DialogHandler:
 
     @classmethod
     def suggest_restaurant(
-        cls, restaurant: str, price_range: str, area: str, food_type: str
+        cls, restaurant: str, price_range: str, area: str, food_type: str, address: str, postcode: str,
     ):
         cls._print(cls.MACHINE_DIALOGS["suggest_restaurant"].format(**locals()))
 
@@ -83,3 +88,15 @@ class DialogHandler:
     @classmethod
     def suggest_other_keyword(cls, suggested_keyword: str):
         cls._print(cls.MACHINE_DIALOGS["suggest_other_keyword"].format(**locals()))
+
+    @classmethod
+    def suggestion_accepted(cls):
+        cls._print(cls.MACHINE_DIALOGS["suggestion_accepted"])
+
+    @classmethod
+    def suggestion_denied(cls, preferences: str):
+        cls._print(cls.MACHINE_DIALOGS["suggestion_denied"].format(**locals()))
+
+    @classmethod
+    def repeat_text(cls):
+        cls._print(cls.last_text)

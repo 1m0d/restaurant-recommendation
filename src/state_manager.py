@@ -30,6 +30,8 @@ class StateManager:
         "repeat_statement",  # 8
         "suggest_other_keyword",  # 9
         "check_table",  # 10
+        "suggestion_accepted",
+        "suggestion_denied",
     ]
 
     def __init__(self, loglevel=logging.WARNING, machine_cls=Machine):
@@ -40,8 +42,6 @@ class StateManager:
 
         self.machine = machine_cls(model=self, states=self.STATES, initial="neutral")
 
-        # The universal path for negate
-        self.machine.add_transition(trigger="negate", source="*", dest="neutral")
 
         # The paths for ack and null are boring so far
         self.machine.add_transition(trigger="ack", source="*", dest="neutral")
@@ -50,9 +50,7 @@ class StateManager:
         )  # might need to change
 
         # Restart will always lead you to the initial text again (minus the welcome), stating your options
-        self.machine.add_transition(
-            trigger="restart", source="*", dest="neutral", after="restate_options"
-        )
+        self.machine.add_transition(trigger="restart", source="*", dest="neutral")
 
         # In the following cases, affirm should do something then lead to neutral
         self.machine.add_transition(
@@ -63,12 +61,18 @@ class StateManager:
         self.machine.add_transition(
             trigger="affirm",
             source="suggest_other_keyword",
-            dest="check_table",
+            dest="suggestion_accepted",
         )
-
-        # In neutral/unknown cases, these will all repeat the most recent message (in similar or the same wording)
-        self.machine.add_transition(trigger="repeat", source="*", dest="repeat_text")
-        self.machine.add_transition(trigger="affirm", source="*", dest="repeat_text")
+        self.machine.add_transition(
+            trigger="deny",
+            source="suggest_other_keyword",
+            dest="suggestion_denied",
+        )
+        self.machine.add_transition(
+            trigger="negate",
+            source="suggest_other_keyword",
+            dest="suggestion_denied",
+        )
 
         self.machine.add_transition(
             trigger="inform_known",
@@ -78,12 +82,10 @@ class StateManager:
 
         # These are straightforward
         self.machine.add_transition(
-            trigger="inform_unknown", source="*", dest="suggest_other_keyword"
+            trigger="inform_typo", source="*", dest="suggest_other_keyword"
         )
         self.machine.add_transition(trigger="hello", source="*", dest="greet")
-        self.machine.add_transition(
-            trigger="bye", source="*", dest="say_bye_exit", after="say_goodbye"
-        )
+        self.machine.add_transition(trigger="bye", source="*", dest="say_bye_exit")
         self.machine.add_transition(
             trigger="reqalts", source="*", dest="suggest_to_replace"
         )
@@ -97,19 +99,15 @@ class StateManager:
 
         # For now, these do the same thing(like in most example cases)
         self.machine.add_transition(
-            trigger="confirm", source="*", dest="return_requested_info"
+            trigger="confirm", source="*", dest="request_missing_info"
         )
         self.machine.add_transition(
-            trigger="request", source="*", dest="return_requested_info"
+    trigger="request", source="*", dest="request_missing_info"
         )
 
         # CHANGE LATER: make sure it's either a new restaurant or note that there are no other restaurants
         self.machine.add_transition(
-            trigger="reqmore", source="*", dest="suggest_restaurant"
-        )
-
-        self.machine.add_transition(  # should comes from source "check_table", but put "*" for good measure
-            trigger="missing_info", source="*", dest="request_missing_info"
+            trigger="reqmore", source="suggest_restaurant", dest="suggest_restaurant"
         )
 
         self.machine.add_transition(
@@ -119,7 +117,7 @@ class StateManager:
         self.machine.add_transition(
             trigger="affirm",
             source="suggest_restaurant",
-            dest="final",
+            dest="say_bye_exit",
         )
 
         self.machine.add_transition(
@@ -127,25 +125,27 @@ class StateManager:
             source="suggest_restaurant",
             dest="suggest_restaurant",
         )
+        self.machine.add_transition(
+            trigger="negate",
+            source="suggest_restaurant",
+            dest="suggest_restaurant",
+        )
+
+        self.machine.add_transition(
+            trigger="inform_unknown",
+            source="*",
+            dest="suggestion_denied"
+        )
 
         # TODO: what to do when out out of suggestions
         self.machine.add_transition(
             trigger="out_of_suggestions",
-            source="*",
-            dest="final",
+            source="suggest_restaurant",
+            dest="say_bye_exit",
         )
 
-    def say_hello(self):
-        print("Hello!")
+        # In neutral/unknown cases, these will all repeat the most recent message (in similar or the same wording)
+        self.machine.add_transition(trigger="repeat", source="*", dest="repeat_text")
 
-    def say_goodbye(self):
-        print("Thank you for using this restaurant recommendation system! Goodbye!")
-
-    def repeat_text(self):
-        print(self.last_text)
-
-    def restate_options(self):
-        print("SOME LINE SHOWING AN OVERVIEW OF WHAT YOU CAN ASK THE MACHINE")
-
-    def youre_welcome(self):
-        print("You're welcome.")
+        # The universal path for negate
+        self.machine.add_transition(trigger="negate", source="*", dest="neutral")
