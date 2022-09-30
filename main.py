@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 
 import pathlib
 from datetime import datetime
@@ -19,7 +18,7 @@ def main():
     elif args.objective == "recommend":
         dataset = create_dataset(args.dataset_path)
         train_dataset, test_dataset = process_data(dataset)
-
+        logging.info("Loading dataset")
         train_inputs = list(
             train_dataset.map(lambda _input, _: _input).as_numpy_iterator()
         )
