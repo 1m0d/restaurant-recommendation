@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, Optional
+from typing import Final, Iterable, Optional
 
 import pandas as pd
 from src.dialog_handler import DialogHandler
@@ -8,18 +8,24 @@ from src.keyword_matching import KeywordMatcher
 from src.preferences import Preferences
 from src.state_manager import StateManager
 
-import re
-import Levenshtein
 
+DEFAULT_RESTAURANT_INFO_PATH: Final = "./datafiles/restaurant_info.csv"
+DEFAULT_INFERENCE_RULES_PATH: Final = "./datafiles/inference_rules.csv"
 
 class RestaurantRecommender:
-    def __init__(self, classifier, csv_path: str = "./restaurant_info.csv"):
+    def __init__(
+        self,
+        classifier,
+        restaurant_info_path: str = DEFAULT_RESTAURANT_INFO_PATH,
+        inference_rules_path: str = DEFAULT_INFERENCE_RULES_PATH,
+    ):
+        self.restaurants = pd.read_csv(restaurant_info_path)
+        self.inference_rules = pd.read_csv(inference_rules_path)
         self.state_manager = StateManager()
         self.preferences = Preferences()
-        self.keyword_matcher = KeywordMatcher()
+        self.keyword_matcher = KeywordMatcher(restaurants_df=self.restaurants)
         self.classifier = classifier
         self.recommend_restaurants: Iterable[str] = []
-        self.restaurants = pd.read_csv(csv_path)
         self.logger = logging.getLogger(__name__)
         self.last_matched_preferences = Optional[Preferences]
 
@@ -91,7 +97,7 @@ class RestaurantRecommender:
                     area=restaurant.area,
                     food_type=restaurant.food,
                     address=restaurant.addr,
-                    postcode=restaurant.postcode
+                    postcode=restaurant.postcode,
                 )
             else:
                 self.state_manager.out_of_suggestions()
@@ -109,45 +115,30 @@ class RestaurantRecommender:
             self.preferences.to_pandas_query()
         ).itertuples()
 
-def inferencing(consequent, trigger, rules, suggestions):
-    """
-    consequent: specific preference like romantic
-    trigger: how input was classified if deny or negate filter on not romantic
-    rules: inference rules
-    suggestions: current list of suggested restaurants
-    filter suggestions 
-    """
-    wanted = True
-    check = []
-    if trigger in ['deny','negate']:
-        wanted = False
+    def infer_additional_preference(self, consequent: str, trigger: str):
+        """
+        consequent: specific preference like romantic
+        trigger: how input was classified if deny or negate filter on not romantic
+        filter suggestions
+        """
+        antedecents = self.inference_rules[
+            (self.inference_rules.consequent == consequent)
+        ]
 
-    filter = rules[(rules['consequent'] == consequent) & (rules['wanted'] == wanted)]
-    options = suggestions.values.tolist()
+        if antedecents.empty:
+            return
 
-    for option in options:
-        temp = []
-        for _,item in filter.iterrows():
-            temp.append(set(item['antedecent']).issubset(option))
-        check.append(any(temp))
+        restaurants = self.restaurants.loc[self.restaurants.antedecents.apply(lambda x: self._filter_row_by_antedescents(x, antedecents))]
+        pass
 
-    suggestions['recommend'] = check
+    @classmethod
+    def _filter_row_by_antedescents(cls, row: pd.Series, antedecents: pd.DataFrame) -> bool:
+        result = False
+        for antedecent in antedecents.itertuples():
+            if not antedecent.wanted and antedecent.antedecent in row:
+                return False
 
-    return(suggestions[suggestions['recommend'] == True].reset_index())
+            if antedecent.wanted and antedecent.antedecent in row:
+                result = True
 
-def inference_detection(string):
-    """
-    string: user input
-    detect extra preference keywords
-    """
-    patterns = ['touristic', 'romantic', 'children', 'assigned seats', '(\w+(?= restaurant))']
-    matcher = re.compile('|'.join(patterns))
-    item = ""
-    try:
-        item = matcher.search(string).group()
-    except:
-        return(None,False)
-    if item in patterns:
-        return(item,False)
-    else:
-        return(levenshtein(item,patterns),True)
+        return result

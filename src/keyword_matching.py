@@ -1,5 +1,5 @@
 import re
-from typing import Iterable, Optional, Pattern, Tuple
+from typing import Final, Iterable, Optional, Pattern, Tuple
 
 import Levenshtein
 import numpy as np
@@ -8,8 +8,11 @@ from src.preferences import Preferences
 
 
 class KeywordMatcher:
-    def __init__(self):
-        self.table = pd.read_csv("restaurant_info.csv")
+    # TODO food pricerange
+    ANTEDESCENT_FIELDS: Final = ["foodquality", "crowdedness", "lengthofstay"]
+
+    def __init__(self, restaurants_df: pd.DataFrame):
+        self.table = restaurants_df
         self._compile_regex_patterns()
 
     def match_keyword(self, string: str) -> Tuple[Preferences, bool]:
@@ -27,6 +30,9 @@ class KeywordMatcher:
         levenshtein_used = bool1 or bool2 or bool3
 
         return (matched_preferences, levenshtein_used)
+
+    def match_additional_preference(self, string: str) -> Tuple[str, bool]:
+        return self._matcher(self.consequent_pattern, self.known_consequents, string=string)
 
     def _compile_regex_patterns(self):
         self.known_areas = self.table.area.unique()[:-1]
@@ -47,6 +53,14 @@ class KeywordMatcher:
         price_regexes = [r"(\w+)\sprice(d)?", r"(\w+)\scost(ing)?"]
         price_patterns = np.concatenate([self.known_price_ranges, price_regexes])
         self.price_pattern = re.compile("|".join(price_patterns))
+
+        # TODO: use rules csv instead
+        self.known_consequents = np.array([self.table[col].unique() for col in self.ANTEDESCENT_FIELDS]).flatten()
+        consequent_regexes = [r"(\w+)\srestaurant"]
+        consequent_patterns = np.concatenate([self.known_consequents, consequent_regexes])
+        self.consequent_pattern = re.compile("|".join(consequent_patterns))
+
+        self.table['antedecents'] = self.table[self.ANTEDESCENT_FIELDS].values.tolist()
 
     @classmethod
     def _matcher(
