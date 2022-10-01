@@ -39,12 +39,12 @@ class KeywordMatcher:
         self.area_pattern = re.compile("|".join(area_patterns))
 
         self.known_foods = self.table.food.unique()
-        food_regexes = [r"((?<=serves\s)\w+)", r"(\w+(?= restaurant))", r"(\w+) food"]
+        food_regexes = [r"serves\s(\w+)", r"(\w+)\srestaurant", r"(\w+)\sfood"]
         food_patterns = np.concatenate([self.known_foods, food_regexes])
         self.food_pattern = re.compile("|".join(food_patterns))
 
         self.known_price_ranges = self.table.pricerange.unique()
-        price_regexes = [r"(\w+(?= price(d)?))", r"(\w+(?= cost(ing)?))"]
+        price_regexes = [r"(\w+)\sprice(d)?", r"(\w+)\scost(ing)?"]
         price_patterns = np.concatenate([self.known_price_ranges, price_regexes])
         self.price_pattern = re.compile("|".join(price_patterns))
 
