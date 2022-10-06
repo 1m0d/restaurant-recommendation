@@ -32,14 +32,16 @@ class KeywordMatcher:
         return (matched_preferences, levenshtein_used)
 
     def match_additional_preference(self, string: str) -> Tuple[str, bool]:
-        return self._matcher(self.consequent_pattern, self.known_consequents, string=string)
+        return self._matcher(
+            self.consequent_pattern, self.known_consequents, string=string
+        )
 
     def _compile_regex_patterns(self):
         self.known_areas = self.table.area.unique()[:-1]
         area_regexes = [
             r"((?<=in\sthe\s)\w+)",
             r"(\w+(?= (part)?\s+of\s+(the)?(town|city)))",
-            r"(\w) area"
+            r"(\w) area",
         ]
         area_patterns = np.concatenate([self.known_areas, area_regexes])
         self.area_pattern = re.compile("|".join(area_patterns))
@@ -55,12 +57,16 @@ class KeywordMatcher:
         self.price_pattern = re.compile("|".join(price_patterns))
 
         # TODO: use rules csv instead
-        self.known_consequents = np.array([self.table[col].unique() for col in self.ANTEDESCENT_FIELDS]).flatten()
+        self.known_consequents = np.array(
+            [self.table[col].unique() for col in self.ANTEDESCENT_FIELDS]
+        ).flatten()
         consequent_regexes = [r"(\w+)\srestaurant"]
-        consequent_patterns = np.concatenate([self.known_consequents, consequent_regexes])
+        consequent_patterns = np.concatenate(
+            [self.known_consequents, consequent_regexes]
+        )
         self.consequent_pattern = re.compile("|".join(consequent_patterns))
 
-        self.table['antedecents'] = self.table[self.ANTEDESCENT_FIELDS].values.tolist()
+        self.table["antedecents"] = self.table[self.ANTEDESCENT_FIELDS].values.tolist()
 
     @classmethod
     def _matcher(
