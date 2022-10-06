@@ -12,6 +12,7 @@ from src.state_manager import StateManager
 DEFAULT_RESTAURANT_INFO_PATH: Final = "./datafiles/restaurant_info.csv"
 DEFAULT_INFERENCE_RULES_PATH: Final = "./datafiles/inference_rules.csv"
 
+
 class RestaurantRecommender:
     def __init__(
         self,
@@ -25,7 +26,7 @@ class RestaurantRecommender:
         self.preferences = Preferences()
         self.keyword_matcher = KeywordMatcher(restaurants_df=self.restaurants)
         self.classifier = classifier
-        self.recommend_restaurants: Iterable[str] = []
+        self.recommend_restaurants: pd.DataFrame
         self.logger = logging.getLogger(__name__)
         self.last_matched_preferences = Optional[Preferences]
 
@@ -115,10 +116,9 @@ class RestaurantRecommender:
             self.preferences.to_pandas_query()
         ).itertuples()
 
-    def infer_additional_preference(self, consequent: str, trigger: str):
+    def infer_additional_preference(self, consequent: str):
         """
         consequent: specific preference like romantic
-        trigger: how input was classified if deny or negate filter on not romantic
         filter suggestions
         """
         antedecents = self.inference_rules[
@@ -128,17 +128,17 @@ class RestaurantRecommender:
         if antedecents.empty:
             return
 
-        restaurants = self.restaurants.loc[self.restaurants.antedecents.apply(lambda x: self._filter_row_by_antedescents(x, antedecents))]
-        pass
+        self.restaurants = self.restaurants.query(
+            self._antedecents_to_query(antedecents)
+        )
 
-    @classmethod
-    def _filter_row_by_antedescents(cls, row: pd.Series, antedecents: pd.DataFrame) -> bool:
-        result = False
-        for antedecent in antedecents.itertuples():
-            if not antedecent.wanted and antedecent.antedecent in row:
-                return False
+    def _antedecents_to_query(self, antedecents: pd.DataFrame) -> str:
+        return " & ".join(
+            f"{antedecent.column_name}"
+            f"{self._wanted_to_operation(antedecent.wanted)}"
+            f"'{antedecent.antedecent}'"
+            for antedecent in antedecents.itertuples()
+        )
 
-            if antedecent.wanted and antedecent.antedecent in row:
-                result = True
-
-        return result
+    def _wanted_to_operation(self, wanted: bool) -> str:
+        return "==" if wanted else "!="

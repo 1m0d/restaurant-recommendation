@@ -38,11 +38,12 @@ class StateManager:
     def __init__(self, loglevel=logging.WARNING, machine_cls=Machine):
         logging.getLogger("transitions").setLevel(loglevel)
 
+        self.state: str
+
         self.last_text = ""
         self.current_preferences = Preferences()
 
         self.machine = machine_cls(model=self, states=self.STATES, initial="neutral")
-
 
         # The paths for ack and null are boring so far
         self.machine.add_transition(trigger="ack", source="*", dest="neutral")
@@ -103,7 +104,7 @@ class StateManager:
             trigger="confirm", source="*", dest="request_missing_info"
         )
         self.machine.add_transition(
-    trigger="request", source="*", dest="request_missing_info"
+            trigger="request", source="*", dest="request_missing_info"
         )
 
         # CHANGE LATER: make sure it's either a new restaurant or note that there are no other restaurants
@@ -133,9 +134,7 @@ class StateManager:
         )
 
         self.machine.add_transition(
-            trigger="inform_unknown",
-            source="*",
-            dest="suggestion_denied"
+            trigger="inform_unknown", source="*", dest="suggestion_denied"
         )
 
         self.machine.add_transition(
