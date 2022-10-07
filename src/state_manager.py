@@ -27,7 +27,14 @@ class StateManager:
 
         self.current_preferences = Preferences()
 
-        self.machine = machine_cls(model=self, states=self.STATES, initial="initial")
+        self.machine = machine_cls(
+            model=self,
+            states=self.STATES,
+            initial="initial",
+            ignore_invalid_triggers=True,
+        )
+
+        # callbacks
         self.machine.on_enter_additional_requirements(
             DialogHandler.additional_requirements
         )
@@ -190,3 +197,7 @@ class StateManager:
         DialogHandler.request_missing_info(
             missing_keyword=self.current_preferences.missing_preferences()[0]
         )
+
+    # TODO: should handle this
+    def out_of_suggestions(self):
+        self.bye()
