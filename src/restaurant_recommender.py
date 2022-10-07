@@ -1,5 +1,5 @@
 import logging
-from typing import Final, Iterable, Optional
+from typing import Final, Optional
 
 import pandas as pd
 from src.dialog_handler import DialogHandler
@@ -33,7 +33,7 @@ class RestaurantRecommender:
     def run(self):
         DialogHandler.initial()
 
-        while self.state_manager.state != "say_bye_exit":
+        while self.state_manager.state != "bye":
             user_input = input().lower()
             trigger = self._input_to_trigger(user_input=user_input)
             if trigger == "inform":
@@ -42,6 +42,7 @@ class RestaurantRecommender:
                     levenshtein_used,
                 ) = self.keyword_matcher.match_keyword(user_input)
                 self.preferences += matched_preferences
+                self.state_manager.current_preferences = self.preferences
                 self.last_matched_preferences = matched_preferences
 
                 if matched_preferences.is_empty():
@@ -50,10 +51,6 @@ class RestaurantRecommender:
                     trigger = "inform_typo"
                 else:
                     trigger = "inform_known"
-
-                    if self.preferences.is_full():
-                        self._find_restaurants()
-                        trigger = "preferences_filled"
 
             self.logger.debug(f"{trigger=}")
 
@@ -66,13 +63,19 @@ class RestaurantRecommender:
                 trigger_func = self.state_manager.machine.null
             trigger_func()
 
-            if self.state_manager.state == "suggestion_accepted":
-                self.preferences += self.last_matched_preferences
-                if self.preferences.is_full():
-                    self._find_restaurants()
-                    self.state_manager.preferences_filled()
-            elif self.state_manager.state == "out_of_suggestions":
-                self.preferences = Preferences()
+            if (
+                self.state_manager.state == "suggest_restaurant"
+                and not self.recommend_restaurants
+            ):
+                self._find_restaurants()
+
+            #  if self.state_manager.state == "suggestion_accepted":
+            #  self.preferences += self.last_matched_preferences
+            #  if self.preferences.is_full():
+            #  self._find_restaurants()
+            #  self.state_manager.preferences_filled()
+            #  elif self.state_manager.state == "out_of_suggestions":
+            #  self.preferences = Preferences()
 
             self._state_to_utterance()
 
@@ -103,13 +106,13 @@ class RestaurantRecommender:
             else:
                 self.state_manager.out_of_suggestions()
                 DialogHandler.out_of_suggestions()
-        elif self.state_manager.state == "suggest_other_keyword":
+        elif self.state_manager.state == "suggest_other_preference":
             DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
         elif self.state_manager.state == "suggestion_denied":
             DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
-        else:
-            func = getattr(DialogHandler, self.state_manager.state)
-            func()
+        #  else:
+        #  func = getattr(DialogHandler, self.state_manager.state)
+        #  func()
 
     def _find_restaurants(self):
         self.recommend_restaurants = self.restaurants.query(
@@ -128,7 +131,7 @@ class RestaurantRecommender:
         if antedecents.empty:
             return
 
-        self.restaurants = self.restaurants.query(
+        self.recommend_restaurants = self.recommend_restaurants.query(
             self._antedecents_to_query(antedecents)
         )
 

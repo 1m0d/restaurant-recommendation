@@ -9,9 +9,9 @@ class DialogHandler:
     MACHINE_DIALOGS: Final = {
         "initial": "Welcome to this restaurant recommendation system. You can ask for restaurants by type of food, area, or price range. How can I help you today?",
         #  "neutral": [
-            #  "Remember, you can ask for restaurants by type of food, area, or price range.",
-            #  "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.", #  TODO: implement random restaurant suggestion
-            #  "",
+        #  "Remember, you can ask for restaurants by type of food, area, or price range.",
+        #  "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.", #  TODO: implement random restaurant suggestion
+        #  "",
         #  ],
         "neutral": "Remember, you can ask for restaurants by type of food, area, or price range.",
         "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food. Address: {postcode} {address}. Is this okay?",
@@ -34,7 +34,10 @@ class DialogHandler:
         "suggest_other_keyword": "Did you mean {suggested_keyword}?",
         "suggestion_accepted": "Added it to your prefences.",
         "suggestion_denied": "Sorry, I don't know any restaurants where you can find {prefences}",
-        "out_of_suggestions": "Sorry I don't know any restaurants like that. Do you want to start over?"
+        "out_of_suggestions": "Sorry I don't know any restaurants like that. Do you want to start over?",
+        "unknown_restaurant": "Sorry, I do not know any such restaurant.",
+        "additional_requirements": "Do you have any additional requirements?",
+        "do_not_understand": "Sorry, I do not understand.",
     }
 
     BLUE: Final = "\033[94m"
@@ -57,7 +60,13 @@ class DialogHandler:
 
     @classmethod
     def suggest_restaurant(
-        cls, restaurant: str, price_range: str, area: str, food_type: str, address: str, postcode: str,
+        cls,
+        restaurant: str,
+        price_range: str,
+        area: str,
+        food_type: str,
+        address: str,
+        postcode: str,
     ):
         cls._print(cls.MACHINE_DIALOGS["suggest_restaurant"].format(**locals()))
 
@@ -105,3 +114,15 @@ class DialogHandler:
     @classmethod
     def out_of_suggestions(cls):
         cls._print(cls.MACHINE_DIALOGS["out_of_suggestions"])
+
+    @classmethod
+    def unknown_restaurant(cls):
+        cls._print(cls.MACHINE_DIALOGS["unknown_restaurant"])
+
+    @classmethod
+    def additional_requirements(cls):
+        cls._print(cls.MACHINE_DIALOGS["additional_requirements"])
+
+    @classmethod
+    def do_not_understand(cls):
+        cls._print(cls.MACHINE_DIALOGS["do_not_understand"])
