@@ -87,5 +87,5 @@ class KeywordMatcher:
         distances = [(x, Levenshtein.distance(item, x)) for x in table]
         distances.sort(key=lambda x: x[1])
         if distances[0][1] > 3:
-            return "random"
+            return "any"
         return distances[0][0]

@@ -26,7 +26,7 @@ class RestaurantRecommender:
         self.preferences = Preferences()
         self.keyword_matcher = KeywordMatcher(restaurants_df=self.restaurants)
         self.classifier = classifier
-        self.recommend_restaurants: pd.DataFrame
+        self.recommend_restaurants: Optional[pd.DataFrame] = None
         self.logger = logging.getLogger(__name__)
         self.last_matched_preferences = Optional[Preferences]
 
