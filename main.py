@@ -10,6 +10,7 @@ from src.evaluate_models import evaluate_models
 from src.keyword_matching import KeywordMatcher
 from src.models.logistic_regression_model import LogisticRegressionModel
 from src.models.decision_tree import DecisionTreeModel
+from src.models.rule_based_matching.rule_matcher import RuleMatcher
 from src.restaurant_recommender import RestaurantRecommender
 
 
@@ -39,6 +40,8 @@ def main():
             classifier = LogisticRegressionModel(inputs, labels)
         elif args.classifier == "decisiontree":
             classifier = DecisionTreeModel(inputs, labels)
+        elif args.classifier == "rulebased":
+            classifier = RuleMatcher()
         
         DialogHandler.caps = args.capslock
         DialogHandler.delay = args.delay
@@ -71,13 +74,15 @@ def _parse_arguments():
     )
     parser.add_argument(
         "--capslock",
-        const="capslock",
+        const=True,
+        default=False,
         help="print all system utterances in uppercase",
         nargs="?",
     )
     parser.add_argument(
         "--delay",
-        const="delay",
+        const=True,
+        default=False,
         help="enable variable system delay",
         nargs="?",
     )
@@ -90,9 +95,9 @@ def _parse_arguments():
     parser.add_argument(
         "--classifier",
         default="logregression",
-        const="classifier",
+        const="logregression",
         nargs="?",
-        choices=["logregression","decisiontree"],
+        choices=["logregression","decisiontree","rulebased"],
         help="set the dialog act classifier",
     )    
 
