@@ -1,5 +1,6 @@
 from typing import Final
-
+import time
+import random
 
 class DialogHandler:
     # TODO: ADD A STATE to the state manager called initial. It should not ever be a dest, but in self.machine set initial="initial"
@@ -45,7 +46,17 @@ class DialogHandler:
     @classmethod
     def _print(cls, string: str):
         cls.last_text = string
-        print(cls.BLUE + string + cls.END_COLOR)
+        if cls.delay:
+            cls.wait()
+        if cls.caps:
+            print(cls.BLUE + string.upper() + cls.END_COLOR)
+        else:
+            print(cls.BLUE + string + cls.END_COLOR)
+    
+    @classmethod
+    def wait():
+        duration = random.randint(1,5)
+        time.sleep(duration)
 
     @classmethod
     def initial(cls):

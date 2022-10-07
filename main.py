@@ -5,8 +5,11 @@ import pathlib
 from datetime import datetime
 
 from src.data_handler import create_dataset, process_data
+from src.dialog_handler import DialogHandler
 from src.evaluate_models import evaluate_models
+from src.keyword_matching import KeywordMatcher
 from src.models.logistic_regression_model import LogisticRegressionModel
+from src.models.decision_tree import DecisionTreeModel
 from src.restaurant_recommender import RestaurantRecommender
 
 
@@ -32,7 +35,15 @@ def main():
         inputs = train_inputs + test_inputs
         labels = train_labels + test_labels
 
-        classifier = LogisticRegressionModel(inputs, labels)
+        if args.classifier == "logregression" :
+            classifier = LogisticRegressionModel(inputs, labels)
+        elif args.classifier == "decisiontree":
+            classifier = DecisionTreeModel(inputs, labels)
+        
+        DialogHandler.caps = args.capslock
+        DialogHandler.delay = args.delay
+        KeywordMatcher.distance = args.levenshtein
+
         RestaurantRecommender(classifier=classifier).run()
 
 
@@ -58,6 +69,33 @@ def _parse_arguments():
         help="set loglevel to Debug",
         nargs="?",
     )
+    parser.add_argument(
+        "--capslock",
+        const="capslock",
+        help="print all system utterances in uppercase",
+        nargs="?",
+    )
+    parser.add_argument(
+        "--delay",
+        const="delay",
+        help="enable variable system delay",
+        nargs="?",
+    )
+    parser.add_argument(
+        "--levenshtein",
+        type=int,
+        help="set the levenshtein distance",
+        default=3,
+    )
+    parser.add_argument(
+        "--classifier",
+        default="logregression",
+        const="classifier",
+        nargs="?",
+        choices=["logregression","decisiontree"],
+        help="set the dialog act classifier",
+    )    
+
     args = parser.parse_args()
 
     if not args.dataset_path.is_file():

@@ -60,12 +60,12 @@ class KeywordMatcher:
         if match in known_keywords:
             return (match, False)
 
-        return (cls._levenshtein(match, known_keywords), True)
+        return (cls._levenshtein(match, known_keywords, cls.distance), True)
 
     @classmethod
-    def _levenshtein(cls, item, table):
+    def _levenshtein(cls, item, table, distance):
         distances = [(x, Levenshtein.distance(item, x)) for x in table]
         distances.sort(key=lambda x: x[1])
-        if distances[0][1] > 3:
+        if distances[0][1] > distance:
             return "random"
         return distances[0][0]
