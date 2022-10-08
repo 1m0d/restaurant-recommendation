@@ -30,8 +30,19 @@ class RestaurantRecommender:
             restaurants_df=self.restaurants, rules_df=self.inference_rules
         )
 
-        self.recommend_restaurants: Optional[Iterable[Tuple]] = None
+        self._recommend_restaurants: Optional[pd.DataFrame] = None
+        self.recommend_restaurants_iter: Optional[Iterable[Tuple]] = None
         self.current_restaurant: Optional[Tuple] = None
+
+    @property
+    def recommend_restaurants(self):
+        return self._recommend_restaurants
+
+    @recommend_restaurants.setter
+    def recommend_restaurants(self, value: Optional[pd.DataFrame]):
+        self._recommend_restaurants = value
+        if value is not None:
+            self.recommend_restaurants_iter = value.itertuples()
 
     def run(self):
         DialogHandler.initial()
@@ -117,9 +128,7 @@ class RestaurantRecommender:
                 missing_keyword=self.preferences.missing_preferences()[0]
             )
         elif self.state_manager.state == "suggest_restaurant":
-            self.current_restaurant = next(
-                self.recommend_restaurants.itertuples(), None
-            )
+            self.current_restaurant = next(self.recommend_restaurants_iter, None)
             if self.current_restaurant:
                 DialogHandler.suggest_restaurant(
                     restaurant=self.current_restaurant.restaurantname,
@@ -129,7 +138,7 @@ class RestaurantRecommender:
                 )
             else:
                 self.state_manager.out_of_suggestions()
-                DialogHandler.out_of_suggestions()
+                self.recommend_restaurants = None
         elif self.state_manager.state == "suggest_other_preference":
             DialogHandler.suggest_other_keyword(
                 str(self.state_manager.last_matched_preferences)
