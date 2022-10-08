@@ -39,22 +39,39 @@ class RestaurantRecommender:
             user_input = input().lower()
             trigger = self._input_to_trigger(user_input=user_input)
             if trigger == "inform":
-                (
-                    matched_preferences,
-                    levenshtein_used,
-                ) = self.keyword_matcher.match_keyword(user_input)
+                if self.state_manager.state == "initial":
+                    (
+                        matched_preferences,
+                        levenshtein_used,
+                    ) = self.keyword_matcher.match_keyword(user_input)
 
-                if not levenshtein_used:
-                    self.state_manager.current_preferences += matched_preferences
+                    if not levenshtein_used:
+                        self.state_manager.current_preferences += matched_preferences
 
-                self.state_manager.last_matched_preferences = matched_preferences
+                    self.state_manager.last_matched_preferences = matched_preferences
 
-                if matched_preferences.is_empty():
-                    trigger = "inform_unknown"
-                elif levenshtein_used:
-                    trigger = "inform_typo"
-                else:
-                    trigger = "inform_known"
+                    if matched_preferences.is_empty():
+                        trigger = "inform_unknown"
+                    elif levenshtein_used:
+                        trigger = "inform_typo"
+                    else:
+                        trigger = "inform_known"
+                elif self.state_manager.state == "additional_requirements":
+                    (
+                        matched_requirement,
+                        levenshtein_used,
+                    ) = self.keyword_matcher.match_additional_preference(user_input)
+
+                    if not matched_requirement:
+                        trigger = "inform_unknown"
+                        # TODO
+                    elif levenshtein_used:
+                        trigger = "inform_typo"
+                    else:
+                        trigger = "inform_known"
+                        self._infer_additional_preference(
+                            consequent=matched_requirement
+                        )
 
             self.logger.debug(f"{trigger=}")
 
@@ -68,8 +85,8 @@ class RestaurantRecommender:
             trigger_func()
 
             if (
-                self.state_manager.state == "suggest_restaurant"
-                and not self.recommend_restaurants
+                self.recommend_restaurants is None
+                and self.state_manager.current_preferences.is_full()
             ):
                 self._find_restaurants()
 
@@ -89,7 +106,7 @@ class RestaurantRecommender:
                 missing_keyword=self.preferences.missing_preferences()[0]
             )
         elif self.state_manager.state == "suggest_restaurant":
-            restaurant = next(self.recommend_restaurants, None)
+            restaurant = next(self.recommend_restaurants.itertuples(), None)
             if restaurant:
                 DialogHandler.suggest_restaurant(
                     restaurant=restaurant.restaurantname,
@@ -117,9 +134,9 @@ class RestaurantRecommender:
     def _find_restaurants(self):
         self.recommend_restaurants = self.restaurants.query(
             self.state_manager.current_preferences.to_pandas_query()
-        ).itertuples()
+        )
 
-    def infer_additional_preference(self, consequent: str):
+    def _infer_additional_preference(self, consequent: str):
         """
         consequent: specific preference like romantic
         filter suggestions

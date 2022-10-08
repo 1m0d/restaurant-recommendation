@@ -37,7 +37,7 @@ class StateManager:
 
         # callbacks
         self.machine.on_enter_additional_requirements(
-            DialogHandler.additional_requirements
+            DialogHandler.additional_requirement
         )
         self.machine.on_enter_initial(self.request_missing_info)
         self.machine.on_enter_bye(DialogHandler.say_bye_exit)
@@ -90,6 +90,12 @@ class StateManager:
         # additional_requirements
         self.machine.add_transition(
             trigger="deny", source="additional_requirements", dest="suggest_restaurant"
+        )
+        self.machine.add_transition(
+            trigger="affirm",
+            source="additional_requirements",
+            dest="additional_requirements",
+            after=DialogHandler.additional_requirement_question,
         )
         self.machine.add_transition(
             trigger="inform_known",
@@ -158,11 +164,6 @@ class StateManager:
             source="additional_info",
             dest="bye",
         )
-        self.machine.add_transition(
-            trigger="thankyou",
-            source="additional_info",
-            dest="bye",
-        )
 
         # global
         self.machine.add_transition(
@@ -187,9 +188,8 @@ class StateManager:
     def repeat(self):
         DialogHandler.repeat_text()
 
-    #  def thankyou(self):
-    #  DialogHandler.youre_welcome()
-    #  self.thankyou()
+    def thankyou(self):
+        DialogHandler.youre_welcome()
 
     def null(self):
         DialogHandler.do_not_understand()
