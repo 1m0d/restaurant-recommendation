@@ -43,6 +43,7 @@ class StateManager:
         self.machine.on_enter_initial(self.request_missing_info)
         self.machine.on_enter_bye(DialogHandler.say_bye_exit)
         self.machine.on_enter_out_of_suggestions(DialogHandler.out_of_suggestions)
+        self.machine.on_enter_suggest_other_preference(self.suggest_other_preference)
 
         # initial
         self.machine.add_transition(
@@ -224,3 +225,6 @@ class StateManager:
 
     def option_suggestion_accepted(self):
         self.current_preferences += self.last_matched_preferences
+
+    def suggest_other_preference(self):
+        DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
