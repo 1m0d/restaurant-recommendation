@@ -35,7 +35,7 @@ def main():
 
 def _parse_arguments():
     parser = argparse.ArgumentParser(
-        description="text classification",
+        description="Restaurant Recommendation System",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -89,10 +89,7 @@ def _parse_arguments():
     parser.add_argument(
         "--pretrained_model_path",
         type=pathlib.Path,
-        help=(
-            "path to pretrained model, to use for restaurant recommendation."
-            " if does not exist will save model to here"
-        ),
+        help=("path to pretrained model, to use for restaurant recommendation"),
     )
     parser.add_argument(
         "--save_model_path",
