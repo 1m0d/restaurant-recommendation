@@ -7,7 +7,6 @@ from datetime import datetime
 from src.data_handler import create_dataset, process_data
 from src.evaluate_models import evaluate_models
 from src.models.logistic_regression_model import LogisticRegressionModel
-from src.preferences import Preferences
 from src.restaurant_recommender import RestaurantRecommender
 
 

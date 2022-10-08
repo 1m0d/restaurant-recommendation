@@ -52,6 +52,22 @@ class KeywordMatcher:
             self.consequent_pattern, self.known_consequents, string=string
         )
 
+    def match_additional_information(self, string: str) -> Optional[str]:
+        """
+        Extract additional information from input string.
+        If found convert it to restaurants_table column name.
+        """
+        if "address" in string:
+            return "addr"
+
+        if "postcode" in string or "post code" in string:
+            return "postcode"
+
+        if "phone" in string:
+            return "phone"
+
+        return None
+
     def _compile_regex_patterns(self):
         self.known_areas = self.restaurants_table.area.unique()[:-1]
         area_regexes = [

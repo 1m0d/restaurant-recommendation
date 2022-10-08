@@ -31,6 +31,7 @@ class RestaurantRecommender:
         )
 
         self.recommend_restaurants: Optional[Iterable[Tuple]] = None
+        self.current_restaurant: Optional[Tuple] = None
 
     def run(self):
         DialogHandler.initial()
@@ -72,6 +73,16 @@ class RestaurantRecommender:
                         self._infer_additional_preference(
                             consequent=matched_requirement
                         )
+            elif trigger == "request":
+                matched_request = self.keyword_matcher.match_additional_information(
+                    user_input
+                )
+                if matched_request:
+                    DialogHandler.return_requested_info(
+                        info_type=matched_request,
+                        restaurant=self.current_restaurant.restaurantname,
+                        info=getattr(self.current_restaurant, matched_request),
+                    )
 
             self.logger.debug(f"{trigger=}")
 
@@ -106,15 +117,15 @@ class RestaurantRecommender:
                 missing_keyword=self.preferences.missing_preferences()[0]
             )
         elif self.state_manager.state == "suggest_restaurant":
-            restaurant = next(self.recommend_restaurants.itertuples(), None)
-            if restaurant:
+            self.current_restaurant = next(
+                self.recommend_restaurants.itertuples(), None
+            )
+            if self.current_restaurant:
                 DialogHandler.suggest_restaurant(
-                    restaurant=restaurant.restaurantname,
-                    price_range=restaurant.pricerange,
-                    area=restaurant.area,
-                    food_type=restaurant.food,
-                    address=restaurant.addr,
-                    postcode=restaurant.postcode,
+                    restaurant=self.current_restaurant.restaurantname,
+                    price_range=self.current_restaurant.pricerange,
+                    area=self.current_restaurant.area,
+                    food_type=self.current_restaurant.food,
                 )
             else:
                 self.state_manager.out_of_suggestions()

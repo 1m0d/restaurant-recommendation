@@ -5,7 +5,7 @@ class DialogHandler:
     MACHINE_DIALOGS: Final = {
         "initial": "Welcome to this restaurant recommendation system. You can ask for restaurants by type of food, area, or price range. How can I help you today?",
         "neutral": "Remember, you can ask for restaurants by type of food, area, or price range.",
-        "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food. Address: {postcode} {address}. Is this okay?",
+        "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food. Is this okay?",
         "request_missing_info": "What should the {missing_keyword} of the restaurant be?",
         "say_bye_exit": "Thank you for using this restaurant recommendation system. Have a nice day!",
         "return_requested_info": "The {info_type} of {restaurant} is {info}",
@@ -51,8 +51,6 @@ class DialogHandler:
         price_range: str,
         area: str,
         food_type: str,
-        address: str,
-        postcode: str,
     ):
         cls._print(cls.MACHINE_DIALOGS["suggest_restaurant"].format(**locals()))
 
