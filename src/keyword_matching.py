@@ -72,20 +72,25 @@ class KeywordMatcher:
     def _matcher(
         cls, keyword_pattern: Pattern, known_keywords: Iterable[str], string: str
     ) -> Tuple[Optional[str], bool]:
-        try:
-            match = keyword_pattern.search(string).group()
-        except AttributeError:
+        match = keyword_pattern.search(string)
+        if not match or not match.group():
             return (None, False)
 
-        if match in known_keywords:
-            return (match, False)
+        if match.group() in known_keywords:
+            return (match.group(), False)
 
-        return (cls._levenshtein(match, known_keywords), True)
+        if any(match.groups()):
+            pattern_match = next(group for group in match.groups() if group)
+            if pattern_match:
+                return (cls._levenshtein(pattern_match, known_keywords), True)
+
+        # should not reach this
+        return (match.group(), False)
 
     @classmethod
-    def _levenshtein(cls, item, table):
+    def _levenshtein(cls, item, table) -> Optional[str]:
         distances = [(x, Levenshtein.distance(item, x)) for x in table]
         distances.sort(key=lambda x: x[1])
         if distances[0][1] > 3:
-            return "any"
+            return None
         return distances[0][0]
