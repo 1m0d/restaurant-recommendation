@@ -17,3 +17,6 @@ class LogisticRegressionModel:
 
     def feature_extraction(self, dataset: Iterable):
         return self.count_vectorizer.transform(dataset)
+
+    def predict(self, feature_vector):
+        return self.model.predict(feature_vector)

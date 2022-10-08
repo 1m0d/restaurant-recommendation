@@ -68,7 +68,9 @@ class RestaurantRecommender:
 
     def _input_to_trigger(self, user_input) -> str:
         feature_vector = self.classifier.feature_extraction([user_input])
-        trigger = self.classifier.model.predict(feature_vector)[0].decode("utf-8")
+        trigger = self.classifier.predict(feature_vector)[0]
+        if isinstance(trigger, bytes):
+            trigger = trigger.decode("utf-8")
         self.logger.debug(f"classified input as {trigger}")
 
         return trigger
@@ -88,7 +90,7 @@ class RestaurantRecommender:
                     area=restaurant.area,
                     food_type=restaurant.food,
                     address=restaurant.addr,
-                    postcode=restaurant.postcode
+                    postcode=restaurant.postcode,
                 )
             else:
                 self.state_manager.out_of_suggestions()

@@ -2,6 +2,7 @@ from typing import Final
 import time
 import random
 
+
 class DialogHandler:
     # TODO: ADD A STATE to the state manager called initial. It should not ever be a dest, but in self.machine set initial="initial"
     # Substitute the references to variables in this dict with the appropriate variable names (see anything in curly brackets {})
@@ -10,9 +11,9 @@ class DialogHandler:
     MACHINE_DIALOGS: Final = {
         "initial": "Welcome to this restaurant recommendation system. You can ask for restaurants by type of food, area, or price range. How can I help you today?",
         #  "neutral": [
-            #  "Remember, you can ask for restaurants by type of food, area, or price range.",
-            #  "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.", #  TODO: implement random restaurant suggestion
-            #  "",
+        #  "Remember, you can ask for restaurants by type of food, area, or price range.",
+        #  "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food.", #  TODO: implement random restaurant suggestion
+        #  "",
         #  ],
         "neutral": "Remember, you can ask for restaurants by type of food, area, or price range.",
         "suggest_restaurant": "{restaurant} is a {price_range} priced restaurant, located in {area}, that serves {food_type} food. Address: {postcode} {address}. Is this okay?",
@@ -35,7 +36,7 @@ class DialogHandler:
         "suggest_other_keyword": "Did you mean {suggested_keyword}?",
         "suggestion_accepted": "Added it to your prefences.",
         "suggestion_denied": "Sorry, I don't know any restaurants where you can find {prefences}",
-        "out_of_suggestions": "Sorry I don't know any restaurants like that. Do you want to start over?"
+        "out_of_suggestions": "Sorry I don't know any restaurants like that. Do you want to start over?",
     }
 
     BLUE: Final = "\033[94m"
@@ -52,10 +53,10 @@ class DialogHandler:
             print(cls.BLUE + string.upper() + cls.END_COLOR)
         else:
             print(cls.BLUE + string + cls.END_COLOR)
-    
+
     @classmethod
-    def wait():
-        duration = random.randint(1,5)
+    def wait(cls):
+        duration = random.randint(1, 5)
         time.sleep(duration)
 
     @classmethod
@@ -68,7 +69,13 @@ class DialogHandler:
 
     @classmethod
     def suggest_restaurant(
-        cls, restaurant: str, price_range: str, area: str, food_type: str, address: str, postcode: str,
+        cls,
+        restaurant: str,
+        price_range: str,
+        area: str,
+        food_type: str,
+        address: str,
+        postcode: str,
     ):
         cls._print(cls.MACHINE_DIALOGS["suggest_restaurant"].format(**locals()))
 

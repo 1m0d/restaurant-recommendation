@@ -47,3 +47,6 @@ class RuleMatcher:
 
     def predict(self, features: Iterable):
         return [self.classify(feature) for feature in features]
+
+    def feature_extraction(self, data):
+        return data
