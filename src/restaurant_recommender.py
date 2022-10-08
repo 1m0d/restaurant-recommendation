@@ -1,49 +1,58 @@
 import logging
-from typing import Iterable, Optional
+from typing import Final, Iterable, Optional, Tuple
 
 import pandas as pd
 from src.dialog_handler import DialogHandler
 from src.keyword_matching import KeywordMatcher
 
-from src.preferences import Preferences
 from src.state_manager import StateManager
 
 
+DEFAULT_RESTAURANT_INFO_PATH: Final = "./datafiles/restaurant_info.csv"
+DEFAULT_INFERENCE_RULES_PATH: Final = "./datafiles/inference_rules.csv"
+
+
 class RestaurantRecommender:
-    def __init__(self, classifier, csv_path: str = "./restaurant_info.csv"):
-        self.state_manager = StateManager()
-        self.preferences = Preferences()
-        self.keyword_matcher = KeywordMatcher()
-        self.classifier = classifier
-        self.recommend_restaurants: Iterable[str] = []
-        self.restaurants = pd.read_csv(csv_path)
+    def __init__(
+        self,
+        classifier,
+        restaurant_info_path: str = DEFAULT_RESTAURANT_INFO_PATH,
+        inference_rules_path: str = DEFAULT_INFERENCE_RULES_PATH,
+    ):
         self.logger = logging.getLogger(__name__)
-        self.last_matched_preferences = Optional[Preferences]
+
+        self.classifier = classifier
+        self.restaurants = pd.read_csv(restaurant_info_path)
+        self.inference_rules = pd.read_csv(inference_rules_path)
+
+        self.state_manager = StateManager()
+        self.keyword_matcher = KeywordMatcher(
+            restaurants_df=self.restaurants, rules_df=self.inference_rules
+        )
+
+        self._recommend_restaurants: Optional[pd.DataFrame] = None
+        self.recommend_restaurants_iter: Optional[Iterable[Tuple]] = None
+        self.current_restaurant: Optional[Tuple] = None
+
+    @property
+    def recommend_restaurants(self):
+        return self._recommend_restaurants
+
+    @recommend_restaurants.setter
+    def recommend_restaurants(self, value: Optional[pd.DataFrame]):
+        self._recommend_restaurants = value
+        if value is not None:
+            self.recommend_restaurants_iter = value.itertuples()
 
     def run(self):
         DialogHandler.initial()
 
-        while self.state_manager.state != "say_bye_exit":
+        while self.state_manager.state != "bye":
             user_input = input().lower()
             trigger = self._input_to_trigger(user_input=user_input)
-            if trigger == "inform":
-                (
-                    matched_preferences,
-                    levenshtein_used,
-                ) = self.keyword_matcher.match_keyword(user_input)
-                self.preferences += matched_preferences
-                self.last_matched_preferences = matched_preferences
 
-                if matched_preferences.is_empty():
-                    trigger = "inform_unknown"
-                elif levenshtein_used:
-                    trigger = "inform_typo"
-                else:
-                    trigger = "inform_known"
-
-                    if self.preferences.is_full():
-                        self._find_restaurants()
-                        trigger = "preferences_filled"
+            trigger = self._handle_inform(user_input=user_input, trigger=trigger)
+            self._handle_request(user_input=user_input, trigger=trigger)
 
             self.logger.debug(f"{trigger=}")
 
@@ -53,18 +62,67 @@ class RestaurantRecommender:
                     f"No state transition trigger found for {trigger=}. Defaulting"
                     " to null."
                 )
-                trigger_func = self.state_manager.machine.null
+                trigger_func = self.state_manager.null
             trigger_func()
 
-            if self.state_manager.state == "suggestion_accepted":
-                self.preferences += self.last_matched_preferences
-                if self.preferences.is_full():
-                    self._find_restaurants()
-                    self.state_manager.preferences_filled()
-            elif self.state_manager.state == "out_of_suggestions":
-                self.preferences = Preferences()
+            if (
+                self.recommend_restaurants is None
+                and self.state_manager.current_preferences.is_full()
+            ):
+                self._find_restaurants()
 
-            self._state_to_utterance()
+            if self.state_manager.state == "suggest_restaurant":
+                self._suggest_restaurant()
+
+    def _handle_inform(self, user_input: str, trigger: str):
+        if trigger != "inform":
+            return trigger
+
+        if self.state_manager.state == "initial":
+            (
+                matched_preferences,
+                levenshtein_used,
+            ) = self.keyword_matcher.match_keyword(user_input)
+
+            if not levenshtein_used:
+                self.state_manager.current_preferences += matched_preferences
+
+            self.state_manager.last_matched_preferences = matched_preferences
+
+            if matched_preferences.is_empty():
+                trigger = "inform_unknown"
+            elif levenshtein_used:
+                trigger = "inform_typo"
+            else:
+                trigger = "inform_known"
+        elif self.state_manager.state == "additional_requirements":
+            (
+                matched_requirement,
+                levenshtein_used,
+            ) = self.keyword_matcher.match_additional_preference(user_input)
+
+            if not matched_requirement:
+                trigger = "inform_unknown"
+                # TODO
+            elif levenshtein_used:
+                trigger = "inform_typo"
+            else:
+                trigger = "inform_known"
+                self._infer_additional_preference(consequent=matched_requirement)
+
+        return trigger
+
+    def _handle_request(self, user_input: str, trigger: str):
+        if trigger != "request":
+            return
+
+        matched_request = self.keyword_matcher.match_additional_information(user_input)
+        if matched_request:
+            DialogHandler.return_requested_info(
+                info_type=matched_request,
+                restaurant=self.current_restaurant.restaurantname,
+                info=getattr(self.current_restaurant, matched_request),
+            )
 
     def _input_to_trigger(self, user_input) -> str:
         feature_vector = self.classifier.feature_extraction([user_input])
@@ -75,35 +133,47 @@ class RestaurantRecommender:
 
         return trigger
 
-    def _state_to_utterance(self):
-        """WIP"""
-        if self.state_manager.state == "request_missing_info":
-            DialogHandler.request_missing_info(
-                missing_keyword=self.preferences.missing_preferences()[0]
+    def _suggest_restaurant(self):
+        self.current_restaurant = next(self.recommend_restaurants_iter, None)
+        if self.current_restaurant:
+            DialogHandler.suggest_restaurant(
+                restaurant=self.current_restaurant.restaurantname,
+                price_range=self.current_restaurant.pricerange,
+                area=self.current_restaurant.area,
+                food_type=self.current_restaurant.food,
             )
-        elif self.state_manager.state == "suggest_restaurant":
-            restaurant = next(self.recommend_restaurants, None)
-            if restaurant:
-                DialogHandler.suggest_restaurant(
-                    restaurant=restaurant.restaurantname,
-                    price_range=restaurant.pricerange,
-                    area=restaurant.area,
-                    food_type=restaurant.food,
-                    address=restaurant.addr,
-                    postcode=restaurant.postcode,
-                )
-            else:
-                self.state_manager.out_of_suggestions()
-                DialogHandler.out_of_suggestions()
-        elif self.state_manager.state == "suggest_other_keyword":
-            DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
-        elif self.state_manager.state == "suggestion_denied":
-            DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
         else:
-            func = getattr(DialogHandler, self.state_manager.state)
-            func()
+            self.state_manager.out_of_suggestions()
+            self.recommend_restaurants = None
 
     def _find_restaurants(self):
         self.recommend_restaurants = self.restaurants.query(
-            self.preferences.to_pandas_query()
-        ).itertuples()
+            self.state_manager.current_preferences.to_pandas_query()
+        )
+
+    def _infer_additional_preference(self, consequent: str):
+        """
+        consequent: specific preference like romantic
+        filter suggestions
+        """
+        antedecents = self.inference_rules[
+            (self.inference_rules.consequent == consequent)
+        ]
+
+        if antedecents.empty:
+            return
+
+        self.recommend_restaurants = self.recommend_restaurants.query(
+            self._antedecents_to_query(antedecents)
+        )
+
+    def _antedecents_to_query(self, antedecents: pd.DataFrame) -> str:
+        return " & ".join(
+            f"{antedecent.column_name}"
+            f"{self._wanted_to_operation(antedecent.wanted)}"
+            f"'{antedecent.antedecent}'"
+            for antedecent in antedecents.itertuples()
+        )
+
+    def _wanted_to_operation(self, wanted: bool) -> str:
+        return "==" if wanted else "!="

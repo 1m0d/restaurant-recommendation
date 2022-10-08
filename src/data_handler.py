@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 from typing import Final
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -11,7 +12,7 @@ SEED = 42
 TRAIN_SPLIT = 0.85
 
 
-def create_dataset(path: str):
+def create_dataset(path: pathlib.Path):
     # TODO: replace tensorflow dataset because it only causes pain
     dataset = tf.data.TextLineDataset(
         path,

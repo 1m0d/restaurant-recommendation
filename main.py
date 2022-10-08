@@ -1,7 +1,7 @@
 import argparse
 import logging
-
 import pathlib
+import pickle
 from datetime import datetime
 
 from src.data_handler import create_dataset, process_data
@@ -20,29 +20,12 @@ def main():
     if args.objective == "evaluate":
         evaluate_models(dataset_path=args.dataset_path)
     elif args.objective == "recommend":
-        dataset = create_dataset(args.dataset_path)
-        train_dataset, test_dataset = process_data(dataset)
-        logging.info("Loading dataset")
-        train_inputs = list(
-            train_dataset.map(lambda _input, _: _input).as_numpy_iterator()
+        classifier = _train_classifier_model(
+            dataset_path=args.dataset_path,
+            pretrained_model_path=args.pretrained_model_path,
+            classifier_type=args.classifier,
+            save_model_path=args.save_model_path,
         )
-        train_labels = list(
-            train_dataset.map(lambda _, label: label).as_numpy_iterator()
-        )
-        test_inputs = list(
-            test_dataset.map(lambda _input, _: _input).as_numpy_iterator()
-        )
-        test_labels = list(test_dataset.map(lambda _, label: label).as_numpy_iterator())
-        inputs = train_inputs + test_inputs
-        labels = train_labels + test_labels
-
-        if args.classifier == "logregression":
-            classifier = LogisticRegressionModel(inputs, labels)
-        elif args.classifier == "decisiontree":
-            classifier = DecisionTreeModel(inputs, labels)
-        elif args.classifier == "rulebased":
-            classifier = RuleMatcher()
-
         DialogHandler.caps = args.capslock
         DialogHandler.delay = args.delay
         KeywordMatcher.distance = args.levenshtein
@@ -51,7 +34,10 @@ def main():
 
 
 def _parse_arguments():
-    parser = argparse.ArgumentParser(description="text classification")
+    parser = argparse.ArgumentParser(
+        description="text classification",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument(
         "objective",
         default="recommend",
@@ -64,7 +50,7 @@ def _parse_arguments():
         "--dataset_path",
         type=pathlib.Path,
         help="path to dialog classification dataset",
-        default="./dialog_acts.dat",
+        default="./datafiles/dialog_acts.dat",
     )
     parser.add_argument(
         "--debug",
@@ -100,7 +86,20 @@ def _parse_arguments():
         choices=["logregression", "decisiontree", "rulebased"],
         help="set the dialog act classifier",
     )
-
+    parser.add_argument(
+        "--pretrained_model_path",
+        type=pathlib.Path,
+        help=(
+            "path to pretrained model, to use for restaurant recommendation."
+            " if does not exist will save model to here"
+        ),
+        default="./datafiles/logistic_regression_model.pickle",
+    )
+    parser.add_argument(
+        "--save_model",
+        type=pathlib.Path,
+        help="path to save classification model after training",
+    )
     args = parser.parse_args()
 
     if not args.dataset_path.is_file():
@@ -127,6 +126,45 @@ def _setup_logging(is_debug=False):
         level=loglevel,
         format="[%(asctime)s] [%(levelname)s] %(message)s",
     )
+
+
+def _train_classifier_model(
+    dataset_path: pathlib.Path,
+    pretrained_model_path: pathlib.Path,
+    classifier_type: str,
+    save_model_path: pathlib.Path,
+):
+
+    if pretrained_model_path.is_file():
+        with open(pretrained_model_path, "rb") as file:
+            classifier = pickle.load(file)
+
+        return classifier
+
+    dataset = create_dataset(dataset_path)
+    train_dataset, test_dataset = process_data(dataset)
+    logging.info("Loading dataset")
+    train_inputs = list(train_dataset.map(lambda _input, _: _input).as_numpy_iterator())
+    train_labels = list(train_dataset.map(lambda _, label: label).as_numpy_iterator())
+    test_inputs = list(test_dataset.map(lambda _input, _: _input).as_numpy_iterator())
+    test_labels = list(test_dataset.map(lambda _, label: label).as_numpy_iterator())
+    inputs = train_inputs + test_inputs
+    labels = train_labels + test_labels
+
+    if classifier_type == "logregression":
+        classifier = LogisticRegressionModel(inputs, labels)
+    elif classifier_type == "decisiontree":
+        classifier = DecisionTreeModel(inputs, labels)
+    elif classifier_type == "rulebased":
+        classifier = RuleMatcher()
+    else:
+        raise Exception(f"Unknown classifier type set. {classifier_type=}")
+
+    if save_model_path:
+        with open(save_model_path, "wb") as file:
+            pickle.dump(classifier, file)
+
+    return classifier
 
 
 if __name__ == "__main__":
