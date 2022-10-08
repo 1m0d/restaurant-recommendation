@@ -1,11 +1,10 @@
 import logging
-from typing import Final, Optional
+from typing import Final, Iterable, Optional, Tuple
 
 import pandas as pd
 from src.dialog_handler import DialogHandler
 from src.keyword_matching import KeywordMatcher
 
-from src.preferences import Preferences
 from src.state_manager import StateManager
 
 
@@ -20,15 +19,18 @@ class RestaurantRecommender:
         restaurant_info_path: str = DEFAULT_RESTAURANT_INFO_PATH,
         inference_rules_path: str = DEFAULT_INFERENCE_RULES_PATH,
     ):
+        self.logger = logging.getLogger(__name__)
+
+        self.classifier = classifier
         self.restaurants = pd.read_csv(restaurant_info_path)
         self.inference_rules = pd.read_csv(inference_rules_path)
+
         self.state_manager = StateManager()
-        self.preferences = Preferences()
-        self.keyword_matcher = KeywordMatcher(restaurants_df=self.restaurants)
-        self.classifier = classifier
-        self.recommend_restaurants: Optional[pd.DataFrame] = None
-        self.logger = logging.getLogger(__name__)
-        self.last_matched_preferences = Optional[Preferences]
+        self.keyword_matcher = KeywordMatcher(
+            restaurants_df=self.restaurants, rules_df=self.inference_rules
+        )
+
+        self.recommend_restaurants: Optional[Iterable[Tuple]] = None
 
     def run(self):
         DialogHandler.initial()
@@ -41,9 +43,11 @@ class RestaurantRecommender:
                     matched_preferences,
                     levenshtein_used,
                 ) = self.keyword_matcher.match_keyword(user_input)
-                self.preferences += matched_preferences
-                self.state_manager.current_preferences = self.preferences
-                self.last_matched_preferences = matched_preferences
+
+                if not levenshtein_used:
+                    self.state_manager.current_preferences += matched_preferences
+
+                self.state_manager.last_matched_preferences = matched_preferences
 
                 if matched_preferences.is_empty():
                     trigger = "inform_unknown"
@@ -68,14 +72,6 @@ class RestaurantRecommender:
                 and not self.recommend_restaurants
             ):
                 self._find_restaurants()
-
-            #  if self.state_manager.state == "suggestion_accepted":
-            #  self.preferences += self.last_matched_preferences
-            #  if self.preferences.is_full():
-            #  self._find_restaurants()
-            #  self.state_manager.preferences_filled()
-            #  elif self.state_manager.state == "out_of_suggestions":
-            #  self.preferences = Preferences()
 
             self._state_to_utterance()
 
@@ -107,16 +103,20 @@ class RestaurantRecommender:
                 self.state_manager.out_of_suggestions()
                 DialogHandler.out_of_suggestions()
         elif self.state_manager.state == "suggest_other_preference":
-            DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
+            DialogHandler.suggest_other_keyword(
+                str(self.state_manager.last_matched_preferences)
+            )
         elif self.state_manager.state == "suggestion_denied":
-            DialogHandler.suggest_other_keyword(str(self.last_matched_preferences))
+            DialogHandler.suggest_other_keyword(
+                str(self.state_manager.last_matched_preferences)
+            )
         #  else:
         #  func = getattr(DialogHandler, self.state_manager.state)
         #  func()
 
     def _find_restaurants(self):
         self.recommend_restaurants = self.restaurants.query(
-            self.preferences.to_pandas_query()
+            self.state_manager.current_preferences.to_pandas_query()
         ).itertuples()
 
     def infer_additional_preference(self, consequent: str):

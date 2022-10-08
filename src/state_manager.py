@@ -1,6 +1,6 @@
 from functools import partial
 import logging
-from typing import Final
+from typing import Final, Optional
 
 from transitions import Machine
 
@@ -20,12 +20,13 @@ class StateManager:
         "bye",
     ]
 
-    def __init__(self, loglevel=logging.WARNING, machine_cls=Machine):
+    def __init__(self, loglevel=logging.ERROR, machine_cls=Machine):
         logging.getLogger("transitions").setLevel(loglevel)
 
         self.state: str
 
         self.current_preferences = Preferences()
+        self.last_matched_preferences: Optional[Preferences] = None
 
         self.machine = machine_cls(
             model=self,
@@ -76,12 +77,14 @@ class StateManager:
             source="suggest_other_preference",
             dest="additional_requirements",
             conditions="preferences_filled",
+            before="option_suggestion_accepted",
         )
         self.machine.add_transition(
             trigger="affirm",
             source="suggest_other_preference",
             dest="initial",
             unless="preferences_filled",
+            before="option_suggestion_accepted",
         )
 
         # additional_requirements
@@ -184,8 +187,9 @@ class StateManager:
     def repeat(self):
         DialogHandler.repeat_text()
 
-    def thankyou(self):
-        DialogHandler.youre_welcome()
+    #  def thankyou(self):
+    #  DialogHandler.youre_welcome()
+    #  self.thankyou()
 
     def null(self):
         DialogHandler.do_not_understand()
@@ -201,3 +205,6 @@ class StateManager:
     # TODO: should handle this
     def out_of_suggestions(self):
         self.bye()
+
+    def option_suggestion_accepted(self):
+        self.current_preferences += self.last_matched_preferences
