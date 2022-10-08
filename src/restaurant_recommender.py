@@ -103,7 +103,7 @@ class RestaurantRecommender:
                     f"No state transition trigger found for {trigger=}. Defaulting"
                     " to null."
                 )
-                trigger_func = self.state_manager.machine.null
+                trigger_func = self.state_manager.null
             trigger_func()
 
             if (
@@ -147,9 +147,6 @@ class RestaurantRecommender:
             DialogHandler.suggest_other_keyword(
                 str(self.state_manager.last_matched_preferences)
             )
-        #  else:
-        #  func = getattr(DialogHandler, self.state_manager.state)
-        #  func()
 
     def _find_restaurants(self):
         self.recommend_restaurants = self.restaurants.query(
