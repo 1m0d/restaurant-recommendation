@@ -93,10 +93,9 @@ def _parse_arguments():
             "path to pretrained model, to use for restaurant recommendation."
             " if does not exist will save model to here"
         ),
-        default="./datafiles/logistic_regression_model.pickle",
     )
     parser.add_argument(
-        "--save_model",
+        "--save_model_path",
         type=pathlib.Path,
         help="path to save classification model after training",
     )
@@ -135,7 +134,7 @@ def _train_classifier_model(
     save_model_path: pathlib.Path,
 ):
 
-    if pretrained_model_path.is_file():
+    if pretrained_model_path and pretrained_model_path.is_file():
         with open(pretrained_model_path, "rb") as file:
             classifier = pickle.load(file)
 
