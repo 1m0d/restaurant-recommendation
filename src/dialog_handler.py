@@ -1,6 +1,6 @@
-from typing import Final
-import time
 import random
+import time
+from typing import Final
 
 
 class DialogHandler:

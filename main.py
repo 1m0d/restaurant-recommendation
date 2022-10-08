@@ -8,8 +8,8 @@ from src.data_handler import create_dataset, process_data
 from src.dialog_handler import DialogHandler
 from src.evaluate_models import evaluate_models
 from src.keyword_matching import KeywordMatcher
-from src.models.logistic_regression_model import LogisticRegressionModel
 from src.models.decision_tree import DecisionTreeModel
+from src.models.logistic_regression_model import LogisticRegressionModel
 from src.models.rule_based_matching.rule_matcher import RuleMatcher
 from src.restaurant_recommender import RestaurantRecommender
 

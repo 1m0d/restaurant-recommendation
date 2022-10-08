@@ -2,11 +2,10 @@ import logging
 from typing import Final, Iterable, Optional, Tuple
 
 import pandas as pd
+
 from src.dialog_handler import DialogHandler
 from src.keyword_matching import KeywordMatcher
-
 from src.state_manager import StateManager
-
 
 DEFAULT_RESTAURANT_INFO_PATH: Final = "./datafiles/restaurant_info.csv"
 DEFAULT_INFERENCE_RULES_PATH: Final = "./datafiles/inference_rules.csv"

@@ -1,12 +1,11 @@
-from functools import partial
 import logging
+from functools import partial
 from typing import Final, Optional
 
 from transitions import Machine
 
-from src.preferences import Preferences
-
 from src.dialog_handler import DialogHandler
+from src.preferences import Preferences
 
 
 class StateManager:
