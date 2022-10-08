@@ -36,13 +36,13 @@ def main():
         inputs = train_inputs + test_inputs
         labels = train_labels + test_labels
 
-        if args.classifier == "logregression" :
+        if args.classifier == "logregression":
             classifier = LogisticRegressionModel(inputs, labels)
         elif args.classifier == "decisiontree":
             classifier = DecisionTreeModel(inputs, labels)
         elif args.classifier == "rulebased":
             classifier = RuleMatcher()
-        
+
         DialogHandler.caps = args.capslock
         DialogHandler.delay = args.delay
         KeywordMatcher.distance = args.levenshtein
@@ -97,9 +97,9 @@ def _parse_arguments():
         default="logregression",
         const="logregression",
         nargs="?",
-        choices=["logregression","decisiontree","rulebased"],
+        choices=["logregression", "decisiontree", "rulebased"],
         help="set the dialog act classifier",
-    )    
+    )
 
     args = parser.parse_args()
 

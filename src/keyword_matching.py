@@ -8,6 +8,8 @@ from src.preferences import Preferences
 
 
 class KeywordMatcher:
+    distance: int
+
     def __init__(self):
         self.table = pd.read_csv("restaurant_info.csv")
         self._compile_regex_patterns()
@@ -33,7 +35,7 @@ class KeywordMatcher:
         area_regexes = [
             r"((?<=in\sthe\s)\w+)",
             r"(\w+(?= (part)?\s+of\s+(the)?(town|city)))",
-            r"(\w) area"
+            r"(\w) area",
         ]
         area_patterns = np.concatenate([self.known_areas, area_regexes])
         self.area_pattern = re.compile("|".join(area_patterns))
@@ -60,12 +62,12 @@ class KeywordMatcher:
         if match in known_keywords:
             return (match, False)
 
-        return (cls._levenshtein(match, known_keywords, cls.distance), True)
+        return (cls._levenshtein(match, known_keywords), True)
 
     @classmethod
-    def _levenshtein(cls, item, table, distance):
+    def _levenshtein(cls, item, table):
         distances = [(x, Levenshtein.distance(item, x)) for x in table]
         distances.sort(key=lambda x: x[1])
-        if distances[0][1] > distance:
+        if distances[0][1] > cls.distance:
             return "random"
         return distances[0][0]

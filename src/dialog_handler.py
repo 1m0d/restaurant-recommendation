@@ -43,6 +43,8 @@ class DialogHandler:
     END_COLOR: Final = "\033[0m"
 
     last_text = ""
+    delay: bool
+    caps: bool
 
     @classmethod
     def _print(cls, string: str):
