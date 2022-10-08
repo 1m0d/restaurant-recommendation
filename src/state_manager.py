@@ -18,6 +18,7 @@ class StateManager:
         "suggest_restaurant",
         "additional_info",
         "bye",
+        "out_of_suggestions",
     ]
 
     def __init__(self, loglevel=logging.ERROR, machine_cls=Machine):
@@ -41,6 +42,7 @@ class StateManager:
         )
         self.machine.on_enter_initial(self.request_missing_info)
         self.machine.on_enter_bye(DialogHandler.say_bye_exit)
+        self.machine.on_enter_out_of_suggestions(DialogHandler.out_of_suggestions)
 
         # initial
         self.machine.add_transition(
@@ -152,6 +154,24 @@ class StateManager:
             source="suggest_restaurant",
             dest="bye",
         )
+        self.machine.add_transition(
+            trigger="out_of_suggestions",
+            source="suggest_restaurant",
+            dest="out_of_suggestions",
+        )
+
+        # out out_of_suggestions
+        self.machine.add_transition(
+            trigger="affirm",
+            source="out_of_suggestions",
+            dest="initial",
+            before="reset_preferences",
+        )
+        self.machine.add_transition(
+            trigger="deny",
+            source="out_of_suggestions",
+            dest="bye",
+        )
 
         # additional_info
         self.machine.add_transition(
@@ -201,10 +221,6 @@ class StateManager:
         DialogHandler.request_missing_info(
             missing_keyword=self.current_preferences.missing_preferences()[0]
         )
-
-    # TODO: should handle this
-    def out_of_suggestions(self):
-        self.bye()
 
     def option_suggestion_accepted(self):
         self.current_preferences += self.last_matched_preferences
