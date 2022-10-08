@@ -1,5 +1,8 @@
 /experiment_logs/*
-/dialog_acts.dat
+dialog_acts.dat
+
+# pickled model files
+*.pickle
 
 # compiled python files
 *.pyc
