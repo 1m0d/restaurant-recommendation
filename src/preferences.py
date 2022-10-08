@@ -4,6 +4,8 @@ from typing import ClassVar, List, Optional
 
 @dataclass
 class Preferences:
+    """Handle restaurants_table preferences of users"""
+
     food_type: Optional[str] = None
     area: Optional[str] = None
     price_range: Optional[str] = None
@@ -15,12 +17,15 @@ class Preferences:
     }
 
     def missing_preferences(self) -> List:
+        """Return preference field names that haven't been set yet"""
         return [field_name for field_name, value in self.__dict__.items() if not value]
 
     def is_full(self) -> bool:
+        """Have all preferences been set?"""
         return all(self.__dict__.values())
 
     def is_empty(self) -> bool:
+        """Have none of the preferences been set?"""
         return not any(self.__dict__.values())
 
     def __iadd__(self, other):
@@ -32,6 +37,7 @@ class Preferences:
         return self
 
     def to_pandas_query(self) -> str:
+        """Generate pandas query based on existing preferences"""
         return " & ".join(
             [
                 f"{self.CSV_ALIASES[key]} == '{value}'"

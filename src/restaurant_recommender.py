@@ -45,6 +45,7 @@ class RestaurantRecommender:
             self.recommend_restaurants_iter = value.itertuples()
 
     def run(self):
+        """Run restaurant recommendation system"""
         DialogHandler.initial()
 
         while self.state_manager.state != "bye":

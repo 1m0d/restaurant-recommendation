@@ -13,7 +13,8 @@ TRAIN_SPLIT = 0.85
 
 
 def create_dataset(path: pathlib.Path):
-    # TODO: replace tensorflow dataset because it only causes pain
+    """create tensorflow dataset instance from path"""
+
     dataset = tf.data.TextLineDataset(
         path,
         compression_type=None,
@@ -36,10 +37,14 @@ def _lowercase_input(input_text, label):
 
 
 def process_data(dataset):
+    """Preprocess data before training"""
+
     logging.info(f"{SEED=}")
     logging.info(f"{TRAIN_SPLIT=}")
 
     dataset = dataset.map(_lowercase_input)
+
+    # for some reason shuffle messes up label-data pairs
     #  dataset = dataset.shuffle(DATASET_SIZE, seed=SEED)
 
     train_dataset_size = int(TRAIN_SPLIT * DATASET_SIZE)

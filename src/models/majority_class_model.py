@@ -6,6 +6,9 @@ def score_input_majority_class(_input_text):
 
 
 def evaluate_majority_class(test_dataset):
+    """
+    Calculate accuracy for majority class model
+    """
     correct = 0
     incorrect = 0
 

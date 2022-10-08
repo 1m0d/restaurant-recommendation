@@ -10,6 +10,7 @@ from src.models.rule_based_matching.rule_matcher import RuleMatcher
 
 
 def evaluate_models(dataset_path: str):
+    """Evaluate classifier models and log the results"""
     dataset = create_dataset(dataset_path)
     train_dataset, test_dataset = process_data(dataset)
 

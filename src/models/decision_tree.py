@@ -13,7 +13,9 @@ class DecisionTreeModel:
         self.model = DecisionTreeClassifier().fit(vectorized_inputs, train_labels)
 
     def feature_extraction(self, dataset: Iterable):
+        """Extract features for scoring"""
         return self.count_vectorizer.transform(dataset)
 
     def predict(self, feature_vector):
+        """Predict class of featurized dialog input"""
         return self.model.predict(feature_vector)

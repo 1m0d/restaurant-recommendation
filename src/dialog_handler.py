@@ -4,6 +4,8 @@ import random
 
 
 class DialogHandler:
+    """Handle dialog printing of the restaurant recommendation system"""
+
     MACHINE_DIALOGS: Final = {
         "initial": "Welcome to this restaurant recommendation system. You can ask for restaurants by type of food, area, or price range. How can I help you today?",
         "neutral": "Remember, you can ask for restaurants by type of food, area, or price range.",
@@ -37,6 +39,7 @@ class DialogHandler:
 
     @classmethod
     def _print(cls, string: str):
+        """Format output before printing"""
         cls.last_text = string
         if cls.delay:
             cls.wait()
@@ -47,6 +50,7 @@ class DialogHandler:
 
     @classmethod
     def wait(cls):
+        """Introduce variable delay to printing"""
         duration = random.randint(1, 5)
         time.sleep(duration)
 

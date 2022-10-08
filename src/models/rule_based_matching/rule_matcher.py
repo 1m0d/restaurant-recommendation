@@ -46,7 +46,12 @@ class RuleMatcher:
         return score_input_majority_class(input_text)
 
     def predict(self, features: Iterable):
+        """Predict class of featurized dialog input"""
         return [self.classify(feature) for feature in features]
 
     def feature_extraction(self, data):
+        """
+        Returns back input data.
+        Needed to have common interface with other classifier models
+        """
         return data
