@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import pathlib
 import pickle
 from datetime import datetime
@@ -31,6 +32,7 @@ def main():
         DialogHandler.natural_delay = args.natural_delay
         KeywordMatcher.distance = args.levenshtein
 
+        os.system("clear")
         RestaurantRecommender(classifier=classifier).run()
 
 
