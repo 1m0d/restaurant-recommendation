@@ -28,6 +28,7 @@ def main():
         )
         DialogHandler.caps = args.capslock
         DialogHandler.delay = args.delay
+        DialogHandler.natural_delay = args.natural_delay
         KeywordMatcher.distance = args.levenshtein
 
         RestaurantRecommender(classifier=classifier).run()
@@ -67,6 +68,11 @@ def _parse_arguments():
     )
     parser.add_argument(
         "--delay",
+        type=int,
+        help="enable constant system delay",
+    )
+    parser.add_argument(
+        "--natural-delay",
         const=True,
         default=False,
         help="enable variable system delay",
@@ -100,6 +106,9 @@ def _parse_arguments():
 
     if not args.dataset_path.is_file():
         raise Exception(f"dialog dataset not found, {args.dataset_path=}")
+
+    if args.delay and args.natural_delay:
+        raise Exception("Only one of delay or natural delay should be set")
 
     return args
 

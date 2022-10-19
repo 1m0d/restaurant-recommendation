@@ -1,4 +1,3 @@
-import random
 import time
 from typing import Final
 
@@ -34,24 +33,32 @@ class DialogHandler:
     END_COLOR: Final = "\033[0m"
 
     last_text = ""
-    delay: bool
+    delay: int
     caps: bool
+    natural_delay: bool
 
     @classmethod
     def _print(cls, string: str):
         """Format output before printing"""
         cls.last_text = string
-        if cls.delay:
-            cls.wait()
+        if cls.delay or cls.natural_delay:
+            cls.wait(string)
         if cls.caps:
             print(cls.BLUE + string.upper() + cls.END_COLOR)
         else:
             print(cls.BLUE + string + cls.END_COLOR)
 
     @classmethod
-    def wait(cls):
+    def wait(cls, string):
         """Introduce variable delay to printing"""
-        duration = random.randint(1, 5)
+        if not (cls.delay or cls.natural_delay):
+            return
+
+        if cls.delay:
+            duration = cls.delay
+        if cls.natural_delay:
+            duration = len(string) * 0.15
+
         time.sleep(duration)
 
     @classmethod
